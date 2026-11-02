@@ -15,7 +15,7 @@ If you find this tool useful, and you have an hourglass fish to spare... `H2N7E5
 
 ## Latest Updates
 **NEW 11/2/2026**<BR />
-Keyboard controls now integrated into the main tracker in commit [`1ad5e54`]([https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/8d8e8c5b4f8207a6f5d9d77bb9ed8758710f9897](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/1ad5e5405f63b41f81c2586b0786aa0e043ec0b4))!
+Keyboard controls now integrated into the main tracker in commit [`77ace4c`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/77ace4c6f4bf37c419cee8a4777954aeec5046e8)!
 - Toggleable option
 - Bind buttons by clicking button first, then key next
 - Works in light mode now!
@@ -29,11 +29,6 @@ New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/do
 - Congo line enable/disable
 - Automatic scrolling enable/disable
 <img width="360" height="158" alt="image" src="https://github.com/user-attachments/assets/2504cb85-8220-4e81-9298-e9e42c2805a9" />
-
-----
-
-**NEW 10/24/2026**<BR />
-You can additionally add keyboard controls by following the install instructions below but for [KEYBOARD-CONTROLS.js](KEYBOARD-CONTROLS.js)
 
 ## Cute Splash Image
 
