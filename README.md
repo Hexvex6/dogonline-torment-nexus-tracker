@@ -1,8 +1,27 @@
 # dogonline-torment-nexus-tracker
 Track your queue and loot for dogonline.net when torment nexus-ing.
 
-**NEW 10/24/2026**<BR />
-You can additionally add keyboard controls by following the install instructions below but for [KEYBOARD-CONTROLS.js](KEYBOARD-CONTROLS.js)
+<!-- https://docs-md.com/markdown-toc-generator -->
+## Table of Contents
+- [Latest Updates](#latest-updates)
+- [Cute Splash Image](#cute-splash-image)
+- [Current Possible Bugs](#current-possible-bugs)
+- [To-Do](#to-do)
+- [Using](#using)
+- [Demonstration Video](#demonstration-video)
+
+If you find this tool useful, and you have an hourglass fish to spare... `H2N7E5A3` 🥺
+<br />OR MULTI DIMENSIONAL DICE &gt;&lt;
+
+## Latest Updates
+**NEW 11/2/2026**<BR />
+Keyboard controls now integrated into the main tracker in commit [`1ad5e54`]([https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/8d8e8c5b4f8207a6f5d9d77bb9ed8758710f9897](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/1ad5e5405f63b41f81c2586b0786aa0e043ec0b4))!
+- Toggleable option
+- Bind buttons by clicking button first, then key next
+- Works in light mode now!
+<img width="360" alt="image" src="https://github.com/user-attachments/assets/1bca2a0b-a6c7-4e7e-aafd-7ebc91f12b37" />
+
+----
 
 **NEW 10/28/2026**<BR />
 New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/8d8e8c5b4f8207a6f5d9d77bb9ed8758710f9897)!
@@ -11,19 +30,10 @@ New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/do
 - Automatic scrolling enable/disable
 <img width="360" height="158" alt="image" src="https://github.com/user-attachments/assets/2504cb85-8220-4e81-9298-e9e42c2805a9" />
 
-...along with a bugfix that kept the tracker up when leaving the tower mid-session
+----
 
-<!-- https://docs-md.com/markdown-toc-generator -->
-## Table of Contents
-- [Cute Splash Image](#cute-splash-image)
-- [Current Possible Bugs](#current-possible-bugs)
-- [To-Do](#to-do)
-- [Using](#using)
-- [Demonstration Video](#demonstration-video)
-- [Keyboard Controls Screenshots](#keyboard-controls-screenshots)
-
-If you find this tool useful, and you have an hourglass fish to spare... `H2N7E5A3` 🥺
-<br />OR MULTI DIMENSIONAL DICE &gt;&lt;
+**NEW 10/24/2026**<BR />
+You can additionally add keyboard controls by following the install instructions below but for [KEYBOARD-CONTROLS.js](KEYBOARD-CONTROLS.js)
 
 ## Cute Splash Image
 
@@ -64,7 +74,3 @@ Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12
 
 ## Demonstration Video
 https://github.com/user-attachments/assets/864d239e-08c0-4016-a093-b07ff072f022
-
-## Keyboard Controls Screenshots
-
-<img width="1485" height="750" alt="image" src="https://github.com/user-attachments/assets/4b9edd19-9075-494b-882c-50c66bef7d65" />
