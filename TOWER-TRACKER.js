@@ -2665,20 +2665,8 @@
                     assignments.set(binding.element, (assigned = { keys: [], binding }));
                 assigned.keys.push(key);
             }
-            const arrows = {
-                arrowup: "↑",
-                arrowdown: "↓",
-                arrowleft: "←",
-                arrowright: "→",
-            };
             for (const [element, assigned] of assignments) {
-                const key = [...assigned.keys]
-                    .sort(
-                        (a, b) =>
-                            Number(a.startsWith("arrow")) - Number(b.startsWith("arrow")),
-                    )
-                    .map((key) => arrows[key] ?? (key === " " ? "Space" : key.toUpperCase()))
-                    .join(" / ");
+                const key = [...assigned.keys].filter(key => !key.toLowerCase().startsWith('arrow'))[0].toUpperCase();
                 const indicator = create_indicator(element, key);
                 indicators.get(element).automatic = true;
                 indicator.dataset.keys = assigned.keys.join(" ");
