@@ -1,3 +1,14 @@
+// ==UserScript==
+// @name         Torment Nexus Tracker
+// @namespace    http://tampermonkey.net/
+// @version      2026-11-03
+// @description  Torment Nexus Tracker
+// @author       Rei Wolf (aka Estradiol aka Savestate)
+// @match        https://dogonline.net/tower
+// @icon         https://dogonline.net/img/items/weapons/Weapon_Plasma_Ranged.png
+// @grant        none
+// ==/UserScript==
+
 (await(async () => {
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
@@ -26,7 +37,7 @@
         }
         if (!previous_instance && window[CACHE_KEY]?.original_fetch) {
             console.error(
-                'Tower tracker init aborted: ' + 
+                'Tower tracker init aborted: ' +
                 'a legacy instance is running. ' +
                 'Reload the page first!'
             );
@@ -42,8 +53,8 @@
             return version;
         } catch (err) {
             console.error(
-                'Tower tracker init aborted: ' + 
-                'could not save its version. ' + 
+                'Tower tracker init aborted: ' +
+                'could not save its version. ' +
                 'An existing tracker was left running:',
                 err
             );
@@ -136,7 +147,7 @@
 
     const TOWER_STYLE = `
         :root {
-            interpolate-size: allow-keywords; 
+            interpolate-size: allow-keywords;
         }
         #tower-options {
             --top: 0px;
@@ -363,7 +374,7 @@
             align-items: center;
             gap: 4px;
 
-            filter: 
+            filter:
                 drop-shadow(2px 0px 0px var(--surface-bg))
                 drop-shadow(-2px 0px 0px var(--surface-bg))
                 drop-shadow(0px 2px 0px var(--surface-bg))
@@ -436,7 +447,7 @@
 
             overflow-y: scroll;
             scrollbar-width: thin;
-            scrollbar-color: 
+            scrollbar-color:
                 rgba(var(--scrollbar-handle-r), var(--scrollbar-handle-g), var(--scrollbar-handle-b), 0.75)
                 rgba(var(--scrollbar-base-r), var(--scrollbar-base-g), var(--scrollbar-base-b), 0.525);
 
@@ -458,7 +469,7 @@
                 gap: 0px;
 
                 width: 100%;
-                
+
                 div {
                     font-family: NDS BIOS,sans-serif;
                     color: var(--text);
@@ -490,13 +501,13 @@
                         left: 0px;
                         width: 100%;
                         height: 100%;
-                        
-                        background-image: inherit; 
+
+                        background-image: inherit;
                         background-size: contain;
                         background-repeat: no-repeat;
                         background-position: center center;
 
-                        filter: grayscale(100%); 
+                        filter: grayscale(100%);
                     }
 
                     &.tower-stats-enemy-image-clone::after {
@@ -509,12 +520,12 @@
 
                         --emerald-glow: rgba(164, 255, 104, 0.5);
                         --outline-size: 1px;
-                        
+
                         background-image: url('/img/items/weapons/Weapon_Plasma_Ranged.png');
                         background-size: contain;
                         background-repeat: no-repeat;
                         background-position: center center;
-                        
+
                         opacity: 1.0;
 
                         filter:
@@ -567,7 +578,7 @@
 
                         image-rendering: auto;
 
-                        background-image: 
+                        background-image:
                             url('/img/tower/tower_ui_lifebar.png'),
                             url('/img/tower/tower_ui_lifebar_bg.png');
                         background-size:
@@ -579,8 +590,8 @@
                         background-repeat:
                             no-repeat,
                             no-repeat;
-                        
-                        background-position-x: 
+
+                        background-position-x:
                             0px,
                             calc((var(--full-width) - (var(--full-width) * var(--bar-scalar))) / 2);
 
@@ -711,7 +722,7 @@
             --transition-offset: 0.0s;
             --transition-offset-stagger: 0.25s;
 
-            transition: 
+            transition:
                 top var(--transition-time) ease-in-out var(--transition-offset),
                 left var(--transition-time) ease-in-out var(--transition-offset),
                 opacity var(--transition-time) ease-in-out var(--transition-offset);
@@ -721,7 +732,7 @@
                 background-position: center center;
                 background-size: contain;
 
-                transition: 
+                transition:
                     width var(--transition-time) ease-in-out var(--transition-offset),
                     height var(--transition-time) ease-in-out var(--transition-offset);
 
@@ -1916,14 +1927,14 @@
                     break;
             }
             item.appendChild(input);
-            
+
             const label = document.createElement('label');
             label.id = `tower-option-list-item-${index}-label`;
             label.classList.add('tower-option-list-item-label');
             label.textContent = selection.label;
             label.htmlFor = input.id;
             item.appendChild(label);
-            
+
             list.appendChild(item);
         }
 
@@ -2092,12 +2103,12 @@
             wrapper_hp.classList.add('tower-stats-enemy-hp-wrapper');
             name.classList.add('tower-stats-enemy-name');
             hp.classList.add('tower-stats-enemy-hp');
-            
+
             index.textContent = `${enemy}`;
             image.style.backgroundImage = `url('${enemies[enemy]['image']}')`;
             if (enemies[enemy]['clone']) {
                 image.classList.add('tower-stats-enemy-image-clone');
-                image.style.backgroundSize = '0 0'; 
+                image.style.backgroundSize = '0 0';
             }
             name.textContent = `${enemies[enemy]['name']}`;
             hp.textContent = `${enemies[enemy]['hp']}/${enemies[enemy]['maxHp']}`;
