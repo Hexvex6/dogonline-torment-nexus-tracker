@@ -3,15 +3,31 @@ Track your queue and loot for dogonline.net when torment nexus-ing.
 
 <!-- https://docs-md.com/markdown-toc-generator -->
 ## Table of Contents
+- [Using](#using)
+  - [Via Tapermonkey](#via-tapermonkey)
+  - [Via Console (F12)](#via-console-f12)
 - [Latest Updates](#latest-updates)
 - [Cute Splash Image](#cute-splash-image)
 - [Current Possible Bugs](#current-possible-bugs)
 - [To-Do](#to-do)
-- [Using](#using)
 - [Demonstration Video](#demonstration-video)
 
 If you find this tool useful, and you have an hourglass fish to spare... `H2N7E5A3` 🥺
 <br />OR MULTI DIMENSIONAL DICE &gt;&lt;
+
+## Using
+### Via Tapermonkey
+
+<img width="1200" alt="image" src="https://github.com/user-attachments/assets/f14f0bac-83c3-49b9-98ca-12d280e50fa9" />
+
+### Via Console (F12)
+Copy the code in [TOWER-TRACKER.js](TOWER-TRACKER.js) using the button provided by GitHub:
+<br />
+<img width="313" height="122" alt="image" src="https://github.com/user-attachments/assets/0cc778f8-ca16-4d30-8339-f39a64025fd9" />
+
+Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12 to open devtools, paste the code into your console, then press Enter.
+
+(Some browsers might require you to type `allow pasting` before doing so)
 
 ## Latest Updates
 **NEW 11/2/2026**<BR />
@@ -56,16 +72,6 @@ New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/do
   - Addressed in commit [`8d8e8c5`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/8d8e8c5b4f8207a6f5d9d77bb9ed8758710f9897) <sub><i>features update</i></sub>
 - ~~Detect if No Longer In Tower (But Floor isn’t Clear, eg suspended)~~
   - Addressed in commit [`8d8e8c5`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/8d8e8c5b4f8207a6f5d9d77bb9ed8758710f9897) <sub><i>features update</i></sub>
-
-## Using
-
-Copy the code in [TOWER-TRACKER.js](TOWER-TRACKER.js) using the button provided by GitHub:
-<br />
-<img width="313" height="122" alt="image" src="https://github.com/user-attachments/assets/0cc778f8-ca16-4d30-8339-f39a64025fd9" />
-
-Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12 to open devtools, paste the code into your console, then press Enter.
-
-(Some browsers might require you to type `allow pasting` before doing so)
 
 ## Demonstration Video
 https://github.com/user-attachments/assets/864d239e-08c0-4016-a093-b07ff072f022
