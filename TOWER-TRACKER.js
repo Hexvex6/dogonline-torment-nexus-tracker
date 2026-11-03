@@ -1,6 +1,111 @@
 (await(async () => {
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
+    // increase anytime the localStorage schema changes
+    const TRACKER_VERSION = 1;
+    const LOCALSTORAGE_VERSION_KEY = '__SAVED_TOWER_TRACKER_VERSION__';
+    const INSTANCE_KEY = '__DOGONLINE_TOWER_TRACKER_INSTANCE__';
+    const get_saved_tracker_version = () => {
+        try {
+            const version = Number(localStorage.getItem(LOCALSTORAGE_VERSION_KEY));
+            return Number.isSafeInteger(version) && version > 0 ? version : 0;
+        } catch {
+            return 0;
+        }
+    };
+    const check_tracker_version = () => {
+        const previous_instance = window[INSTANCE_KEY];
+        const previous_version = Math.max(get_saved_tracker_version(), previous_instance?.version ?? 0);
+        if (previous_version > TRACKER_VERSION) {
+            console.error(
+                `Tower tracker init aborted: ` +
+                `current version (${previous_version})` +
+                `is newer than this version (${TRACKER_VERSION})!`
+            );
+            return null;
+        }
+        if (!previous_instance && window[CACHE_KEY]?.original_fetch) {
+            console.error(
+                'Tower tracker init aborted: ' + 
+                'a legacy instance is running. ' +
+                'Reload the page first!'
+            );
+            return null;
+        }
+        return previous_version;
+    };
+    const claim_tracker_version = () => {
+        const version = check_tracker_version();
+        if (version === null) return null;
+        try {
+            localStorage.setItem(LOCALSTORAGE_VERSION_KEY, String(TRACKER_VERSION));
+            return version;
+        } catch (err) {
+            console.error(
+                'Tower tracker init aborted: ' + 
+                'could not save its version. ' + 
+                'An existing tracker was left running:',
+                err
+            );
+            return null;
+        }
+    };
+    let previous_version;
+    try {
+        if (!navigator.locks?.request) throw new Error('Instance locking is unavailable.');
+        previous_version = await navigator.locks.request(LOCALSTORAGE_VERSION_KEY, claim_tracker_version);
+    } catch (err) {
+        console.error('Tower tracker init aborted: could not take instance!', err);
+        return null;
+    }
+    if (previous_version === null || check_tracker_version() === null) return null;
+    const previous_instance = window[INSTANCE_KEY];
+    previous_instance?.destroy();
+    const instance = {
+        version: TRACKER_VERSION,
+        active: true,
+        display_cleanup: null,
+        fetch: null,
+        scroll: null,
+        keyboard: null,
+        is_current() {
+            if (!this.active) return false;
+            if (window[INSTANCE_KEY] !== this || get_saved_tracker_version() > this.version) {
+                this.destroy();
+                return false;
+            }
+            return true;
+        },
+        destroy() {
+            if (!this.active) return;
+            this.active = false;
+            this.display_cleanup?.();
+            this.display_cleanup = null;
+            clear_upcoming_mobs();
+            this.keyboard?.destroy();
+            this.keyboard = null;
+            if (window[INSTANCE_KEY] === this) {
+                CACHE.set('initalized', false);
+                CACHE.set('display_cleanup', null);
+                CACHE.get('clone_grayscale')?.cancel();
+                CACHE.set('clone_grayscale', null);
+                mob_queue_info_hide();
+            }
+            if (this.fetch !== null && window.fetch === this.fetch) window.fetch = CACHE.get('original_fetch');
+            if (this.scroll !== null && window.scrollTo === this.scroll) window.scrollTo = CACHE.get('native_scroll');
+            window.removeEventListener('storage', version_changed);
+        },
+        attach_keyboard(install) {
+            if (this.is_current()) this.keyboard = install(this);
+        },
+    };
+    const version_changed = event => {
+        if (event.key !== LOCALSTORAGE_VERSION_KEY || event.storageArea !== localStorage) return;
+        if (Number(event.newValue) > instance.version) instance.destroy();
+        else instance.is_current();
+    };
+    window[INSTANCE_KEY] = instance;
+    window.addEventListener('storage', version_changed);
 
     // choose a logging level
     //  - everything
@@ -27,6 +132,7 @@
     let tower_revision = 0;
     let next_request_id = 0;
     let upcoming_mob_revision = 0;
+    let restarting = false;
 
     const TOWER_STYLE = `
         :root {
@@ -42,14 +148,23 @@
             right: var(--right, 8px);
             display: flex;
             flex-direction: column;
-            z-index: 999999;
+            z-index: 9999999;
             margin-right: 12px;
             margin-top: 6px;
+            background-color: rgba(0, 0, 0, 0.0);
+            padding: 0px;
+            transition:
+                padding 0.3s ease,
+                background-color 0.3s ease;
 
             font-size: 24px;
             * {
                 font-size: inherit;
             }
+        }
+        #tower-options:has(#tower-option-list-wrapper.expanded) {
+            background-color: rgba(0, 0, 0, 1.0);
+            padding: 16px;
         }
         #tower-options-expand, #tower-option-list {
         }
@@ -142,6 +257,20 @@
             }
         }
         .tower-option-list-item-label { }
+        #tower-options-restart {
+            display: block;
+            margin: 6px 0 0;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: inherit;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+        #tower-options-restart:hover {
+            color: red;
+        }
         #tower-keyboard-bindings {
             --text: #dedede;
             display: grid;
@@ -158,7 +287,6 @@
             border-left: 2px solid var(--text, currentColor);
             min-width: 0;
             font-size: 16px;
-            background-color: rgba(0,0,0,0.9);
             transition: grid-template-rows 0.3s ease, padding 0.3s ease;
             color: var(--text);
         }
@@ -784,6 +912,7 @@
 
     // save current state to localstorage
     const localstorage_save = () => {
+        if (!instance.is_current()) return false;
         try {
             const saved = {};
             for (const key of SAVED_LOCALSTORAGE_OBJECTS) {
@@ -822,7 +951,7 @@
         }
     };
 
-    const initalized = () => CACHE.get('initalized') === true;
+    const initalized = () => instance.is_current() && CACHE.get('initalized') === true;
 
     // filling in missing session values was because i didn't want
     // to re-queue a bunch of enemies while writing this lol. it
@@ -1006,7 +1135,9 @@
 
     // we only care about combat items (from their category)
     const update_user_combat_items_from_response = async response => {
+        const revision = tower_revision;
         const json = await response.json();
+        if (!instance.is_current() || revision !== tower_revision) return;
         const inventory = json?.[0]?.['result']?.['data']?.['json']?.['inventory'];
         if (!Array.isArray(inventory)) throw new Error('Invalid inventory response!');
         const items = inventory.filter(item => item?.['categories']?.includes('combat')).map(item => ({
@@ -1051,6 +1182,7 @@
     };
 
     const get_user_items_and_store_in_window = async () => {
+        const revision = tower_revision;
         const cached = CACHE.get('user_combat_items');
         if (Array.isArray(cached?.['items'])) {
             if (typeof cached['find'] !== 'function') CACHE.set('user_combat_items', create_user_combat_items(cached['items']));
@@ -1058,11 +1190,13 @@
         }
         const url = 'https://dogonline.net/api/trpc/doghouse.getState';
         const response = await get_response_from_url(url);
+        if (!instance.is_current() || revision !== tower_revision) return;
         await update_user_combat_items_from_response(response);
     };
 
     // save tower state
     const update_raw_tower_state_from_response = (response, already_decoded = false, index = 0) => {
+        if (!instance.is_current()) return false;
         if (!already_decoded) {
             return response.json().then(json => update_raw_tower_state_from_response(json, true, index));
         }
@@ -1447,6 +1581,7 @@
 
     // match weapons to response entries
     const process_deferred_request = async (resource, config, indices, request_id = 0, revision = tower_revision) => {
+        if (!instance.is_current()) return [];
         const request = resource instanceof Request ? resource : null;
         const method = config?.['method'] ?? request?.method ?? 'GET';
         const turns = [];
@@ -1460,7 +1595,7 @@
         if (typeof body === 'string') {
             body = JSON.parse(body);
         }
-        if (revision !== tower_revision) return turns;
+        if (!instance.is_current() || revision !== tower_revision) return turns;
 
         for (const index of indices) {
             const entry = body?.[index] ?? (index === 0 ? body : null);
@@ -1560,7 +1695,7 @@
                 );
             }));
             const timer = setTimeout(() => {
-                if (upcoming_mobs.timer !== timer || CACHE.get('upcoming_mobs') !== upcoming_mobs) return;
+                if (!instance.is_current() || upcoming_mobs.timer !== timer || CACHE.get('upcoming_mobs') !== upcoming_mobs) return;
                 upcoming_mobs.timer = null;
                 for (const slot of upcoming_mobs.slots) slot.classList.remove('moving-forward');
                 update_upcoming_mobs();
@@ -1604,6 +1739,7 @@
     };
 
     const update_mob_queue_css_variables = () => {
+        if (!instance.is_current()) return;
         const tower = document.querySelector('div[class^="tower_towerGameplay"], div[class*=" tower_towerGameplay"]');
         if (tower === null) {
             mob_queue_info_hide();
@@ -1611,6 +1747,8 @@
         }
         const stats = document.querySelector('#tower-stats');
         if (stats === null) return;
+        const state = CACHE.get('state');
+        stats.style.display = state?.['active'] && state?.['mob']?.['visible'] ? 'flex' : 'none';
 
         update_current_mob_grayscale_animation();
         update_mob_queue_masks();
@@ -1692,8 +1830,9 @@
 
         if (CACHE.get('native_scroll') === null) {
             CACHE.set('native_scroll', window.scrollTo);
-            window.scrollTo = scroll_interceptor;
         }
+        instance.scroll = scroll_interceptor;
+        window.scrollTo = instance.scroll;
     }
 
     const TOWER_OPTION_TYPES = {
@@ -1706,6 +1845,7 @@
     const create_tower_options = () => {
         const option = (label, key, type, callback) => ({enabled: false, label, key, type, callback});
         const set_value = (key, value) => {
+            if (!instance.is_current()) return;
             CACHE.get('user_options')[key] = value;
             const bindings = document.getElementById('tower-keyboard-bindings');
             if (bindings) bindings.disabled = CACHE.get('user_options').keyboard !== true;
@@ -1732,6 +1872,7 @@
         expand.innerHTML = 'Options <span>[+]</span>';
 
         expand.onclick = () => {
+            if (!instance.is_current()) return;
             currently_expanded = !currently_expanded;
             expand.querySelector('span').textContent = currently_expanded ? '[-]' : '[+]';
             wrapper.classList.toggle('expanded', currently_expanded);
@@ -1823,6 +1964,7 @@
             input.title = 'Click, then press a key';
             input.setAttribute('aria-label', `${binding.group}: ${binding.label} key`);
             input.onkeydown = event => {
+                if (!instance.is_current()) return;
                 if (event.repeat || event.isComposing) return;
                 event.preventDefault();
                 event.stopPropagation();
@@ -1849,6 +1991,16 @@
         }
         content.appendChild(status);
         list.appendChild(bindings);
+
+        const restart = document.createElement('button');
+        restart.id = 'tower-options-restart';
+        restart.type = 'button';
+        restart.textContent = 'Clear localStorage and Reinit';
+        restart.disabled = restarting;
+        restart.onclick = () => {
+            void restart_tracker().catch(err => console.error('Could not restart tower tracking???', err));
+        };
+        list.appendChild(restart);
 
         options.appendChild(expand);
         wrapper.appendChild(list);
@@ -2031,7 +2183,7 @@
 
     // handle all state changes in response
     const process_deferred_response = (body, indices, turns = null, request_id = 0, revision = tower_revision) => {
-        if (revision !== tower_revision) return;
+        if (!instance.is_current() || revision !== tower_revision) return;
         let updated = false;
         for (const index of indices) {
             const action = get_weapon_use(turns, index, request_id);
@@ -2087,7 +2239,8 @@
             CACHE.set('original_fetch', window.fetch);
         }
 
-        window.fetch = async (...args) => {
+        instance.fetch = async (...args) => {
+            if (!instance.is_current()) return CACHE.get('original_fetch').apply(window, args);
             const [resource, config] = args;
             let indices = [];
             let turns = [];
@@ -2113,7 +2266,7 @@
             }
 
             const response = await CACHE.get('original_fetch').apply(window, args);
-            if (indices.length > 0) {
+            if (instance.is_current() && indices.length > 0) {
                 // keep the response readable
                 try {
                     void response.clone().json()
@@ -2126,6 +2279,7 @@
 
             return response;
         };
+        window.fetch = instance.fetch;
 
         console.info('window.fetch has been successfully patched!');
         console.info('Watching for tower events...');
@@ -2157,6 +2311,7 @@
 
     // clear the finished tower run
     const clear_tower_tracking = () => {
+        if (!instance.is_current()) return;
         tower_revision++;
         clear_upcoming_mobs();
         setup_action_tracking();
@@ -2214,44 +2369,94 @@
     }
 
 
-    document.getElementById('tower-options')?.remove(); // if loading script again
+    // moving this to its own function with the new version guarding in place
+    const initialize_tracker = async () => {
+        if (!instance.is_current()) return;
+        CACHE.get('display_cleanup')?.();
+        instance.display_cleanup = null;
+        document.getElementById('tower-options')?.remove(); // if loading script again
 
-    CACHE.set('initalized', false);
-    patch_console_logging();
+        CACHE.set('initalized', false);
+        patch_console_logging();
 
-    console.override('Initializing TOWER-TRACKER.js...');
+        console.override('Initializing TOWER-TRACKER.js...');
 
-    setup_action_tracking();
-    localstorage_restore();
-    setup_user_options();
-    setup_enemy_queue();
-    get_session_stats();
+        setup_action_tracking();
+        localstorage_restore();
+        setup_user_options();
+        setup_enemy_queue();
+        get_session_stats();
 
-    // discard saved inactive runs
-    const restored_state = CACHE.get('state');
-    const restored_raw = CACHE.get('tower_state_raw');
-    const restored_active = restored_state?.['active'] ?? restored_raw?.['active'] ?? (
-        typeof restored_raw?.['state'] === 'string' ? restored_raw['state'] === 'active' : null
-    );
+        // discard saved inactive runs
+        const restored_state = CACHE.get('state');
+        const restored_raw = CACHE.get('tower_state_raw');
+        const restored_active = restored_state?.['active'] ?? restored_raw?.['active'] ?? (
+            typeof restored_raw?.['state'] === 'string' ? restored_raw['state'] === 'active' : null
+        );
 
-    if (restored_active === false) clear_tower_tracking();
+        if (restored_active === false) clear_tower_tracking();
 
-    patch_fetch();
+        patch_fetch();
 
-    await get_user_items_and_store_in_window();
-    await get_tower_state_when_running_script_for_first_time();
+        await get_user_items_and_store_in_window();
+        if (!instance.is_current()) return;
+        await get_tower_state_when_running_script_for_first_time();
+        if (!instance.is_current()) return;
 
-    mob_queue_info_update();
-    setup_display_callbacks();
+        mob_queue_info_update();
+        instance.display_cleanup = setup_display_callbacks();
+        CACHE.set('display_cleanup', instance.display_cleanup);
 
-    CACHE.set('initalized', true);
+        CACHE.set('initalized', true);
 
-    // so the user knows we've successfully installed the tracker for this session
-    console.override('TOWER-TRACKER.js has initialized!');
-})());
+        // so the user knows we've successfully installed the tracker for this session
+        console.override('TOWER-TRACKER.js has initialized!');
+    };
 
-// keyboard controls now integrated into here!
-(() => {
+    const restart_tracker = async () => {
+        if (!instance.is_current() || restarting) return;
+        restarting = true;
+        const restart = document.getElementById('tower-options-restart');
+        if (restart !== null) restart.disabled = true;
+        try {
+            localStorage.removeItem(LOCALSTORAGE_KEY);
+            tower_revision++;
+            CACHE.set('initalized', false);
+            clear_upcoming_mobs();
+            CACHE.get('clone_grayscale')?.cancel();
+            CACHE.set('clone_grayscale', null);
+            for (const key of SAVED_LOCALSTORAGE_OBJECTS) CACHE.set(key, null);
+            window.dispatchEvent(new Event('tower-tracker-options-changed'));
+            mob_queue_info_hide();
+            await initialize_tracker();
+        } finally {
+            restarting = false;
+            const restart = document.getElementById('tower-options-restart');
+            if (instance.is_current() && restart !== null) restart.disabled = false;
+        }
+    };
+
+    try {
+        await initialize_tracker();
+    } catch (err) {
+        instance.destroy();
+        console.error('Tower tracker init aborted:', err);
+        return null;
+    }
+    if (!instance.is_current()) {
+        console.error(`Tower tracker version ${TRACKER_VERSION} init aborted: its instance was superseded.`);
+        return null;
+    }
+    if (previous_version > 0 && previous_version < TRACKER_VERSION) {
+        console.log(`Tower tracker upgraded from version ${previous_version} to version ${TRACKER_VERSION}.`);
+    }
+    return instance;
+
+    // attach keyboard instead of running it individually since we are
+    // tracking instance lifecycles now...
+})())?.attach_keyboard(instance => {
+
+    // keyboard controls now integrated into here!
     const INTEGRATION_KEY = "__DOGONLINE_TOWER_KEYBOARD_INTEGRATION__";
     const CACHE_KEY = "__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__";
     const KEYBOARD_LISTENER = "__DOGONLINE_KEYBOARD_LISTENER__";
@@ -2687,7 +2892,7 @@
         }
 
         function indicator_tick(time) {
-            if (indicator.destroyed) return;
+            if (indicator.destroyed || !instance.is_current()) return;
             if (indicator.dirty || time - indicator.last_sync >= 150) {
                 update_indicators();
                 indicator.last_sync = time;
@@ -2860,6 +3065,7 @@
         }
 
         function keypress(event) {
+            if (!instance.is_current()) return;
             if (
                 event.defaultPrevented ||
                 event.isComposing ||
@@ -2952,6 +3158,7 @@
     }
 
     function sync() {
+        if (!instance.is_current()) return;
         const options = window[CACHE_KEY]?.user_options;
         if (options?.keyboard !== true) {
             remove_controls();
@@ -2971,6 +3178,7 @@
         sync,
         destroy() {
             window.removeEventListener(OPTIONS_EVENT, sync);
+            if (window[INTEGRATION_KEY] !== integration) return;
             remove_controls();
             if (window[INTEGRATION_KEY] === integration) delete window[INTEGRATION_KEY];
         },
@@ -2978,4 +3186,5 @@
     window[INTEGRATION_KEY] = integration;
     window.addEventListener(OPTIONS_EVENT, sync);
     sync();
-})();
+    return integration;
+});
