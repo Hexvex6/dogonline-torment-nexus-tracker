@@ -3,17 +3,21 @@ Track your queue and loot for dogonline.net when torment nexus-ing.
 
 <!-- https://docs-md.com/markdown-toc-generator -->
 ## Table of Contents
+- [Cute Splash Image](#cute-splash-image)
 - [Using](#using)
   - [Via Tapermonkey](#via-tapermonkey)
   - [Via Console (F12)](#via-console-f12)
 - [Latest Updates](#latest-updates)
-- [Cute Splash Image](#cute-splash-image)
 - [Current Possible Bugs](#current-possible-bugs)
 - [To-Do](#to-do)
 - [Demonstration Video](#demonstration-video)
 
 If you find this tool useful, and you have an hourglass fish to spare... `H2N7E5A3` 🥺
 <br />OR MULTI DIMENSIONAL DICE &gt;&lt;
+
+## Cute Splash Image
+
+<details><summary>Expand to view</summary><img width="1016" height="1216" alt="image" src="https://github.com/user-attachments/assets/86651dc3-5ea2-4176-bc21-3b333c3d5772" /></details>
 
 ## Using
 ### Via Tapermonkey
@@ -45,10 +49,6 @@ New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/do
 - Congo line enable/disable
 - Automatic scrolling enable/disable
 <img width="360" height="158" alt="image" src="https://github.com/user-attachments/assets/2504cb85-8220-4e81-9298-e9e42c2805a9" />
-
-## Cute Splash Image
-
-<img width="1016" height="1216" alt="image" src="https://github.com/user-attachments/assets/86651dc3-5ea2-4176-bc21-3b333c3d5772" />
 
 ## Current Possible Bugs
 
