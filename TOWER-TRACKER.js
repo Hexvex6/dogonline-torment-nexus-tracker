@@ -4,7 +4,7 @@
 // @version      2026-11-03
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
-// @match        https://dogonline.net/tower
+// @match        https://*.dogonline.net/*
 // @icon         https://dogonline.net/img/items/weapons/Weapon_Plasma_Ranged.png
 // @grant        none
 // ==/UserScript==

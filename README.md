@@ -12,8 +12,7 @@ Track your queue and loot for dogonline.net when torment nexus-ing.
 - [To-Do](#to-do)
 - [Demonstration Video](#demonstration-video)
 
-If you find this tool useful, and you have an hourglass fish to spare... `H2N7E5A3` 🥺
-<br />OR MULTI DIMENSIONAL DICE &gt;&lt;
+If you find this tool useful, and you have a dog pop / pawpsicle to spare... `H2N7E5A3` 🥺
 
 ## Cute Splash Image
 
