@@ -1232,6 +1232,33 @@
         }
     };
 
+    const get_dogonline_style = indicator => {
+        const next = document.getElementById('__next');
+        const element = document.querySelector(`[class^="${indicator}"], [class*=" ${indicator}"]`);
+        if (element === null) return null;
+        const full = [...element.classList].find(which => which.startsWith(indicator));
+        if (full === undefined) return null;
+        return full;
+    }
+
+    const reorder_tower_options_start_to_top = () => {
+        if (document.getElementById('tower-otions-restyling-order') !== null) return;
+        const tower_options_reorder_style = `
+            .${get_dogonline_style('tower_towerOptions__')} {
+                display: flex !important;
+                flex-direction: column !important;
+                & > * { order: 2 !important; }
+                & > .${get_dogonline_style('tower_destinationContainer__')},
+                & > .${get_dogonline_style('tower_enterTowerBtns__')} { order: 1 !important; }
+            }
+        `;
+
+        const style = document.createElement('style');
+        style.id = 'tower-otions-restyling-order';
+        style.textContent = tower_options_reorder_style;
+        document.head.appendChild(style);
+    }
+
     const get_user_items_and_store_in_window = async () => {
         const revision = tower_revision;
         const cached = CACHE.get('user_combat_items');
@@ -1552,7 +1579,7 @@
 
         if (
             (weapon === 'Very Cool Stick' || weapon === 'Even Cooler Stick' || weapon === 'Flowering Sakura Stick') &&
-            !effects.banish && 
+            !effects.banish &&
             enemy_was_banished()
         ) {
             if (banish_conversion_entire_queue(action.enemy)) {
@@ -1811,6 +1838,11 @@
 
     const update_mob_queue_css_variables = () => {
         if (!instance.is_current()) return;
+
+        if (get_dogonline_style('tower_towerOptions__') !== null) {
+            reorder_tower_options_start_to_top();
+        }
+
         const tower = document.querySelector('div[class^="tower_towerGameplay"], div[class*=" tower_towerGameplay"]');
         if (tower === null) {
             mob_queue_info_hide();
