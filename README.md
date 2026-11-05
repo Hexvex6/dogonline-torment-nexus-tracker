@@ -36,10 +36,12 @@ Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12
 
 ## Latest Updates
 **NEW 11/4/2026**<BR />
+Lots of QoL added in  commit [`c290444`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/c290444aa3730c1aca0bff169cb412c19f9eb9f9)!
 - Works in light mode now! (for real this time!!!)
 - Dogmatic Seal option added to options menu
 - Queue list automatically hides >= 100 enemies
 - Latest loot shows up at the top of the list so you don't have to keep scrolling
+- Tower Floor Select and Buttons now appear at the top of the webpage (added in commit [`f2cfcdf`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/f2cfcdfe0cd6d69206a3359c0d8d32eeee24923e), thank you amgg!)
 
 ----
 
