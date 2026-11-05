@@ -9,6 +9,8 @@
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
 // @downloadURL  https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
+// @homepage     https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/
+// @homepageURL  https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/
 // ==/UserScript==
 
 (await(async () => {
