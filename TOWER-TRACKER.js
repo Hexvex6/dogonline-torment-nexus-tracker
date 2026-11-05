@@ -13,7 +13,7 @@
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
     // increase anytime the localStorage schema changes
-    const TRACKER_VERSION = 4;
+    const TRACKER_VERSION = 5;
     const LOCALSTORAGE_VERSION_KEY = '__SAVED_TOWER_TRACKER_VERSION__';
     const INSTANCE_KEY = '__DOGONLINE_TOWER_TRACKER_INSTANCE__';
     const get_saved_tracker_version = () => {
@@ -655,7 +655,7 @@
         #tower-stats-loot-list {
             --mask-height: 24px;
             --internal-offset: 0.01;
-            --base-width: 215px;
+            --base-width: 360px;
             --cut-sides: calc(var(--base-width) - (var(--base-width) * var(--internal-offset)));
             --width: round(down, var(--cut-sides), 1px);
             --left: round(up, calc((var(--base-width) - var(--width)) / 2), 1px);
@@ -670,6 +670,7 @@
             display: flex;
             flex-direction: column;
             margin: 0;
+            margin-right: calc(212px - var(--width) + 32px);
             padding: 0;
 
             overflow-y: scroll;
@@ -679,8 +680,8 @@
             position: relative;
             width: var(--width);
             left: var(--left);
-            max-height: 110px;
-            min-height: 110px;
+            max-height: 360px;
+            min-height: 360px;
             padding-left: 8px;
 
             /* put scrollbar on left side */
@@ -690,6 +691,30 @@
                 direction: ltr;
             }
 
+            .tower-stats-loot-list-item-header {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 6px;
+                margin: 0;
+                padding: 0;
+
+                .tower-stats-loot-list-enemy-image {
+                    position: relative;
+                    max-width: 28px;
+                    max-height: 28px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center center;
+                    min-width: 28px;
+                    min-height: 28px;
+                    image-rendering: auto;
+                }
+                div {
+                    font-size: 24px;
+                }
+            }
             div.tower-stats-loot-list-item {
                 display: flex;
                 flex-direction: row;
@@ -698,6 +723,7 @@
                 gap: 6px;
                 margin: 0;
                 padding: 0;
+                padding-left: 8px;
 
                 div.tower-stats-loot-list-item-image {
                     min-height: 20px;
@@ -714,6 +740,9 @@
                     font-size: 16px;
                 }
             }
+        }
+        #tower-stats-loot-list .tower-stats-loot-list-item-header:not(:first-child) {
+            margin-top: 8px;
         }
         div.tower-stats-upcoming-mob {
             overflow: visible;
@@ -1009,6 +1038,22 @@
 
     const initalized = () => instance.is_current() && CACHE.get('initalized') === true;
 
+    // if upgrading with existing loot
+    const UNKNOWN_LOOT_ENEMY = {
+        name: 'Unknown',
+        image: 'https://dogonline.net/img/wiggle-icon-question-mark.gif',
+    };
+
+    const get_enemy_loot = (stats, enemy) => {
+        if (typeof enemy?.name !== 'string' || !enemy.name || typeof enemy?.image !== 'string' || !enemy.image) enemy = UNKNOWN_LOOT_ENEMY;
+        let group = stats.loot.find(entry => entry.name === enemy.name && entry.image === enemy.image);
+        if (!group) {
+            group = { name: enemy.name, image: enemy.image, count: 0, time: 0, loot: [] };
+            stats.loot.push(group);
+        }
+        return group;
+    };
+
     // filling in missing session values was because i didn't want
     // to re-queue a bunch of enemies while writing this lol. it
     // should never actually be relevant unless you go in and edit
@@ -1021,29 +1066,118 @@
         const stats = CACHE.get('session_stats');
         if (!Number.isSafeInteger(stats.slain) || stats.slain < 0) stats.slain = 0;
         if (!Array.isArray(stats.loot)) stats.loot = [];
-        for (const item of stats.loot) {
-            if (!Object.hasOwn(item, 'time')) {
-                item['time'] = Date.now();
+
+        // convert existing loot to the tracked type in v5
+        const legacy = stats.loot.filter(entry => !Array.isArray(entry?.loot));
+        if (legacy.length > 0 || (stats.loot.length === 0 && stats.slain > 0)) {
+            stats.loot = stats.loot.filter(entry => Array.isArray(entry?.loot));
+            const known = stats.loot.reduce((count, group) => count + (Number.isSafeInteger(group.count) && group.count > 0 ? group.count : 0), 0);
+            const unknown = get_enemy_loot(stats, UNKNOWN_LOOT_ENEMY);
+            unknown.count += Math.max(0, stats.slain - known);
+            for (const item of legacy) {
+                if (typeof item?.name !== 'string' || typeof item?.image !== 'string') continue;
+                const count = Number.isSafeInteger(item.count) && item.count > 0 ? item.count : 1;
+                const time = Number.isFinite(item.time) ? item.time : 0;
+                const existing = unknown.loot.find(entry => entry.name === item.name && entry.image === item.image);
+                if (existing) {
+                    existing.count += count;
+                    existing.time = Math.max(existing.time ?? 0, time);
+                } else unknown.loot.push({ name: item.name, image: item.image, count, time });
             }
         }
+        for (const group of stats.loot) {
+            if (!Number.isSafeInteger(group.count) || group.count < 0) group.count = 0;
+            if (!Number.isFinite(group.time)) group.time = 0;
+            for (const item of group.loot) {
+                if (!Number.isFinite(item.time)) item.time = 0;
+                group.time = Math.max(group.time, item.time);
+            }
+            group.loot.sort((a, b) => b.time - a.time);
+        }
         stats.loot.sort((a, b) => b.time - a.time);
+        if (!stats.loot_enemy || typeof stats.loot_enemy !== 'object' || Array.isArray(stats.loot_enemy)) stats.loot_enemy = null;
+
         return stats;
+    };
+
+    const chest_name_from_image = extracted => {
+        const lower = extracted?.toLocaleLowerCase() ?? null;
+        if (lower === null) return '';
+        if (lower.includes('treasure')) return 'Treasure';
+        if (lower.includes('slime')) return 'Slop';
+        if (lower.includes('books')) return 'Bookshelf';
+        if (lower.includes('cooler')) return 'Cooler';
+        return lower.charAt(0) + lower.substring(1); // fallback
+    }
+
+    // for non-enemy enounter related loot drops
+    const get_loot_event = (ui, previous, coordinates) => {
+        const image = ui?.eventPortrait?.image ?? '';
+        const visible = ui?.eventPortrait?.visible === true && ui?.mobPortrait?.visible !== true;
+        const word = chest_name_from_image(image_name_extraction(image));
+        let name = visible && word ? word.charAt(0).toLocaleUpperCase() + word.slice(1).toLocaleLowerCase() : null;
+        const text = [ui?.textStatic, ui?.textbox]
+            .filter(field => field?.visible === true && typeof field.text === 'string')
+            .map(field => field.text.replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;|&#x0*a0;/gi, ' '))
+            .join(' ').replace(/\s+/g, ' ').trim();
+        const tilekey = get_tile_key(coordinates);
+        const enormous = /\bABSOLUTELY\s+ENOU?RMOUS\b/i.test(text); // in case they fix the spelling in the future lol
+        // please cover all cases ....... if it doesn't it should at least show up under "Unknown" (which can be bug reported)
+        const encounter_prompt = /\byou\s+(?:find|found|stumble\s+upon)\s+an?\s+[^.!?]*\b(?:treasure|chest)\b/i.test(text);
+        const location = tilekey !== null ? coordinates : previous?.event?.visible && !encounter_prompt && !enormous
+            ? previous.event.coordinates ?? previous.coordinates : null;
+        if (name === 'Treasure') {
+            const previous_tilekey = get_tile_key(previous?.event?.coordinates ?? previous?.coordinates);
+            const continuing = previous?.event?.visible && previous.event.name === 'Enormous Treasure' && (
+                tilekey === null || previous_tilekey === null || tilekey === previous_tilekey
+            );
+            if (enormous || (continuing && !encounter_prompt)) name = 'Enormous Treasure';
+        }
+        return { name, image, visible, text, coordinates: { ...location } };
     };
 
     // add each new loot drop to saved loot data
     const process_loot_drop = loot => {
         const stats = get_session_stats();
-        for (const item of Array.isArray(loot) ? loot : []) {
-            if (typeof item?.['name'] !== 'string' || typeof item?.['image'] !== 'string') continue;
-            const existing = stats.loot.find(entry => entry.name === item.name && entry.image === item.image);
+        if (Array.isArray(loot) && loot.length === 0) {
+            if (stats.loot_enemy?.received) stats.loot_enemy = null;
+            return;
+        }
+        const items = (Array.isArray(loot) ? loot : []).filter(item => typeof item?.name === 'string' && typeof item?.image === 'string');
+        if (items.length === 0) return;
+        const state = CACHE.get('state');
+        const prev = CACHE.get('prev');
+        const tilekey = get_tile_key(state?.coordinates);
+        const event = state?.event;
+        const event_enemy = event?.visible && event.name ? {
+            name: event.name,
+            image: event.image,
+        } : null;
+        let enemy = event_enemy ?? stats.loot_enemy;
+        if (!event_enemy && enemy && tilekey !== null && get_tile_key(enemy.coordinates) !== tilekey) enemy = null;
+        if (!enemy) {
+            enemy = [prev, state].find(entry => entry?.mob?.hp === 0 && entry.mob.name && entry.mob.image && (
+                tilekey === null || get_tile_key(entry.coordinates) === tilekey
+            ))?.mob;
+        }
+        const group = get_enemy_loot(stats, enemy);
+        if (event_enemy) {
+            group.count++;
+            stats.loot_enemy = null;
+        }
+        const time = Math.max(Date.now(), ...stats.loot.map(entry => entry.time + 1));
+        for (const item of items) {
+            const existing = group.loot.find(entry => entry.name === item.name && entry.image === item.image);
             if (existing) {
                 existing.count++;
-                existing.time = Date.now();
+                existing.time = time;
             }
             else {
-                stats.loot.push({ image: item.image, name: item.name, count: 1, time: Date.now() });
+                group.loot.push({ image: item.image, name: item.name, count: 1, time });
             }
         }
+        group.time = time;
+        if (enemy === stats.loot_enemy && enemy) enemy.received = true;
     };
 
     // extract the image name from a url
@@ -1160,6 +1294,7 @@
         const state = {
             active,
             coordinates: current_tile,
+            event: get_loot_event(ui, CACHE.get('state'), current_tile),
             mob: {
                 name: image_to_name(mob.status?.['image']),
                 image: mob.status?.['image'],
@@ -1547,7 +1682,9 @@
             same_tile &&
             prev?.['name'] === curr['name']
         );
+        const noncombat_event = CACHE.get('tower_state_raw')?.ui?.eventPortrait?.visible === true && !curr['visible'];
         const died = (
+            !noncombat_event &&
             !advanced &&
             same_tile &&
             prev?.['hp'] > 0 &&
@@ -1605,7 +1742,16 @@
         }
 
         if (died) {
-            get_session_stats().slain++;
+            const stats = get_session_stats();
+            stats.slain++;
+            // update enemy loot stats
+            const section_count = stats.loot.length;
+            const enemy = get_enemy_loot(stats, prev);
+            enemy.count++;
+            if (stats.loot.length > section_count) enemy.time = Math.max(Date.now(), ...stats.loot.map(entry => entry.time + 1));
+            stats.loot_enemy = {
+                name: enemy.name, image: enemy.image, coordinates: { ...prev_state.coordinates }, received: false,
+            };
             update_current_enemy_in_queue(prev['name'], prev['image'], 0, curr['maxHp'] ?? prev['maxHp']);
             mark_enemy_removal_pending();
         }
@@ -2316,18 +2462,30 @@
         if (looted !== null) {
             looted.onscroll = update_mob_queue_masks;
             const list = document.createDocumentFragment();
-            for (const entry of session.loot) {
-                const item = document.createElement('div');
+            for (const enemy of session.loot) {
+                const header = document.createElement('div');
                 const image = document.createElement('div');
                 const name = document.createElement('div');
-                item.classList.add('tower-stats-loot-list-item');
-                image.classList.add('tower-stats-loot-list-item-image');
-                name.classList.add('tower-stats-loot-list-item-name');
-                image.style.backgroundImage = `url(${JSON.stringify(entry.image)})`;
-                name.textContent = `${entry.count}x ${entry.name}`;
-                item.appendChild(image);
-                item.appendChild(name);
-                list.appendChild(item);
+                header.className = 'tower-stats-loot-list-item-header';
+                image.className = 'tower-stats-loot-list-enemy-image';
+                image.style.backgroundImage = `url(${JSON.stringify(enemy.image)})`;
+                name.append(document.createElement('span'), document.createTextNode(` ${enemy.name}`));
+                header.append(image, name);
+                header.querySelector('span').textContent = `${enemy.count}x`;
+                list.appendChild(header);
+                for (const entry of enemy.loot) {
+                    const item = document.createElement('div');
+                    const image = document.createElement('div');
+                    const name = document.createElement('div');
+                    item.classList.add('tower-stats-loot-list-item');
+                    image.classList.add('tower-stats-loot-list-item-image');
+                    name.classList.add('tower-stats-loot-list-item-name');
+                    image.style.backgroundImage = `url(${JSON.stringify(entry.image)})`;
+                    name.textContent = `${entry.count}x ${entry.name}`;
+                    item.appendChild(image);
+                    item.appendChild(name);
+                    list.appendChild(item);
+                }
             }
             looted.replaceChildren(list);
         }
@@ -2494,6 +2652,7 @@
         }
         const session = get_session_stats();
         session.slain = 0;
+        session.loot_enemy = null;
         if (!CACHE.get('user_options')?.['foreverloot']) session.loot.length = 0;
         localstorage_save();
         console.info('Tower tracking cleared.');
