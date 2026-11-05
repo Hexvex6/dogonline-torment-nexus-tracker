@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         Torment Nexus Tracker
 // @namespace    http://tampermonkey.net/
-// @version      2026-11-05
+// @version      5.0.0
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
 // @match        https://*.dogonline.net/*
 // @icon         https://dogonline.net/img/items/weapons/Weapon_Plasma_Ranged.png
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
+// @downloadURL  https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
 // ==/UserScript==
 
 (await(async () => {
