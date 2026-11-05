@@ -13,7 +13,7 @@
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
     // increase anytime the localStorage schema changes
-    const TRACKER_VERSION = 1;
+    const TRACKER_VERSION = 2;
     const LOCALSTORAGE_VERSION_KEY = '__SAVED_TOWER_TRACKER_VERSION__';
     const INSTANCE_KEY = '__DOGONLINE_TOWER_TRACKER_INSTANCE__';
     const get_saved_tracker_version = () => {
@@ -183,6 +183,10 @@
             text-align: right;
             user-select: none;
 
+            --options-text: var(--text);
+            color: var(--options-text);
+            transition: color 0.5s ease;
+
             span {
                 cursor: pointer;
                 position: relative;
@@ -200,11 +204,16 @@
                 }
             }
         }
+        #tower-options:has(#tower-option-list-wrapper.expanded) #tower-options-expand {
+            --options-text: #eee;
+        }
         #tower-option-list-wrapper {
+            --options-text: #eee;
             display: grid;
             grid-template-rows: 0fr;
             transition: grid-template-rows 0.3s ease;
             overflow: hidden;
+            color: var(--options-text);
 
             &.expanded {
                 grid-template-rows: 1fr;
@@ -228,7 +237,7 @@
                 padding: 0;
                 width: 16px;
                 height: 16px;
-                border-color: var(--text);
+                border-color: var(--options-text);
                 border-width: 1px;
                 border-style: solid;
                 position: relative;
@@ -274,7 +283,7 @@
             padding: 0;
             border: 0;
             background: none;
-            color: inherit;
+            color: var(--options-text);
             font-family: inherit;
             text-align: left;
             cursor: pointer;
@@ -283,7 +292,6 @@
             color: red;
         }
         #tower-keyboard-bindings {
-            --text: #dedede;
             display: grid;
             grid-template-rows: 1fr;
             margin: 4px 0 0 22px;
@@ -295,11 +303,11 @@
             border-left-width: 0px;
             border-left-style: none;
             border-left-color: currentcolor;
-            border-left: 2px solid var(--text, currentColor);
+            border-left: 2px solid var(--options-text, currentColor);
             min-width: 0;
             font-size: 16px;
             transition: grid-template-rows 0.3s ease, padding 0.3s ease;
-            color: var(--text);
+            color: var(--options-text);
         }
         #tower-keyboard-bindings:disabled {
             grid-template-rows: 0fr;
@@ -329,18 +337,18 @@
             width: 76px;
             min-width: 76px;
             padding: 1px 5px;
-            border: 1px solid var(--text, currentColor);
+            border: 1px solid var(--options-text, currentColor);
             border-radius: 3px;
             background: transparent;
-            color: inherit;
+            color: var(--options-text);
             font-family: inherit;
             font-size: 16px;
             text-align: center;
             cursor: pointer;
         }
         #tower-keyboard-bindings input:focus {
-            outline: 1px solid var(--text, currentColor);
-            box-shadow: 0 0 3px var(--text, currentColor);
+            outline: 1px solid var(--options-text, currentColor);
+            box-shadow: 0 0 3px var(--options-text, currentColor);
         }
         #tower-keyboard-bindings .tower-keyboard-hint,
         #tower-keyboard-binding-status {
@@ -445,6 +453,8 @@
             --scrollbar-base-g: 0;
             --scrollbar-base-b: 88;
 
+            transition: height 1s ease;
+
             overflow-y: scroll;
             scrollbar-width: thin;
             scrollbar-color:
@@ -456,6 +466,10 @@
             direction: rtl;
             * {
                 direction: ltr;
+            }
+
+            &.too-big {
+                height: 0px;
             }
 
             div.tower-stats-enemy {
@@ -605,6 +619,21 @@
                     }
 
                 }
+            }
+        }
+        #tower-stats-queue-too-big {
+            font-size: 16px;
+            position: relative;
+            left: 0.5px;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            color: var(--color-danger-text);
+            transition: height 1s ease;
+            height: 0px;
+
+            &.too-big {
+                height: 40px;
             }
         }
         #tower-stats-loot-list {
@@ -976,6 +1005,12 @@
         const stats = CACHE.get('session_stats');
         if (!Number.isSafeInteger(stats.slain) || stats.slain < 0) stats.slain = 0;
         if (!Array.isArray(stats.loot)) stats.loot = [];
+        for (const item of stats.loot) {
+            if (!Object.hasOwn(item, 'time')) {
+                item['time'] = Date.now();
+            }
+        }
+        stats.loot.sort((a, b) => b.time - a.time);
         return stats;
     };
 
@@ -985,8 +1020,13 @@
         for (const item of Array.isArray(loot) ? loot : []) {
             if (typeof item?.['name'] !== 'string' || typeof item?.['image'] !== 'string') continue;
             const existing = stats.loot.find(entry => entry.name === item.name && entry.image === item.image);
-            if (existing) existing.count++;
-            else stats.loot.push({ image: item.image, name: item.name, count: 1 });
+            if (existing) {
+                existing.count++;
+                existing.time = Date.now();
+            }
+            else {
+                stats.loot.push({ image: item.image, name: item.name, count: 1, time: Date.now() });
+            }
         }
     };
 
@@ -1303,6 +1343,8 @@
         return queues[tilekey];
     };
 
+    const front_of_current_queue = () => get_queue()?.[0];
+
     // add the split enemy from scythe into the back of the queue
     const add_split_enemy_to_back_of_queue = (enemy = CACHE.get('state')?.['mob'], coordinates = CACHE.get('state')?.['coordinates']) => {
         const queue = get_queue(coordinates);
@@ -1349,15 +1391,29 @@
     };
 
     // convert queues on every tile to a banished enemy
-    const banish_conversion_entire_queue = (target = pending_weapon_use?.enemy ?? CACHE.get('prev')?.['mob'] ?? get_queue()?.[0]) => {
+    const banish_conversion_entire_queue = (target = pending_weapon_use?.enemy ?? CACHE.get('prev')?.['mob'] ?? front_of_current_queue()) => {
         const target_hp = remember_original_enemy_hp(target);
         if (target_hp === null) return false;
-        for (const queue of Object.values(CACHE.get('enemy_queue') ?? {})) {
-            if (!Array.isArray(queue)) continue;
-            for (const enemy of queue) {
-                if (enemy.name !== target.name) {
-                    // note: converted enemies from banish lose their clone status
-                    Object.assign(enemy, { name: target.name, image: target.image, hp: target_hp, maxHp: target_hp, clone: false });
+        const queues = CACHE.get('enemy_queue') ?? {};
+        const keys = Object.keys(queues);
+        if (!CACHE.get('user_options')?.['dogmaticseal']) {
+            // remove all enemies in all queues of enemy that got banished
+            // (except front of current queue, which is pending removal)
+            for (const key of keys) {
+                const queue = queues[key];
+                if (!Array.isArray(queue)) continue;
+                queues[key] = queue.filter(enemy => enemy === front_of_current_queue() || enemy.name !== target.name);
+            }
+        } else {
+            // convert all enemies in all queues of enemy that got banished
+            for (const key of keys) {
+                const queue = queues[key];
+                if (!Array.isArray(queue)) continue;
+                for (const enemy of queue) {
+                    if (enemy.name !== target.name) {
+                        // note: converted enemies from banish lose their clone status
+                        Object.assign(enemy, { name: target.name, image: target.image, hp: target_hp, maxHp: target_hp, clone: false });
+                    }
                 }
             }
         }
@@ -1380,7 +1436,7 @@
         const portrait = document.querySelector(selector);
         const is_clone = (
             CACHE.get('state')?.['mob']?.['visible'] === true &&
-            get_queue()?.[0]?.['clone'] === true
+            front_of_current_queue()?.['clone'] === true
         );
 
         if (portrait !== null && !is_clone) {
@@ -1400,7 +1456,7 @@
         const portrait = document.querySelector(selector);
         const is_clone = (
             CACHE.get('state')?.['mob']?.['visible'] === true &&
-            get_queue()?.[0]?.['clone'] === true
+            front_of_current_queue()?.['clone'] === true
         );
 
         if (portrait !== null && portrait.classList.contains('tower-stats-enemy-image-clone') !== is_clone) {
@@ -1494,7 +1550,11 @@
         );
         const hit = weapon === 'Emerald Plasma Scythe' ? max_hp_decreased : hp_decreased;
 
-        if (weapon === 'Flowering Sakura Stick' && !effects.banish && enemy_was_banished()) {
+        if (
+            (weapon === 'Very Cool Stick' || weapon === 'Even Cooler Stick' || weapon === 'Flowering Sakura Stick') &&
+            !effects.banish && 
+            enemy_was_banished()
+        ) {
             if (banish_conversion_entire_queue(action.enemy)) {
                 effects.banish = true;
                 mark_enemy_removal_pending(true);
@@ -1781,7 +1841,7 @@
         }
     }
 
-    const scroll_interceptor = function() {
+    const scroll_interceptor = function () {
         const enabled = CACHE.get('user_options')?.['scrolling'];
         if (!enabled) {
             return CACHE.get('native_scroll').apply(this, arguments);
@@ -1824,7 +1884,7 @@
             options = {};
             CACHE.set('user_options', options);
         }
-        for (const [key, value] of Object.entries({ scrolling: false, congo: true, foreverloot: false, keyboard: false })) {
+        for (const [key, value] of Object.entries({ scrolling: false, congo: true, foreverloot: false, keyboard: false, dogmaticseal: true })) {
             if (typeof options[key] !== 'boolean') options[key] = value;
         }
         if (!options.keyboard_bindings || typeof options.keyboard_bindings !== 'object' || Array.isArray(options.keyboard_bindings)) options.keyboard_bindings = {};
@@ -1854,7 +1914,7 @@
     };
 
     const create_tower_options = () => {
-        const option = (label, key, type, callback) => ({enabled: false, label, key, type, callback});
+        const option = (label, key, type, callback) => ({ enabled: false, label, key, type, callback });
         const set_value = (key, value) => {
             if (!instance.is_current()) return;
             CACHE.get('user_options')[key] = value;
@@ -1872,6 +1932,7 @@
             option('Disable automatic scrolling', 'scrolling', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Queue of enemies behind door', 'congo', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Persist loot between sessions', 'foreverloot', TOWER_OPTION_TYPES.CHECKBOX, set_value),
+            option('Using Dogmatic Seal', 'dogmaticseal', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Keyboard controls', 'keyboard', TOWER_OPTION_TYPES.CHECKBOX, set_value),
         ];
 
@@ -1904,7 +1965,7 @@
 
             const input = document.createElement('input');
             input.classList.add('tower-option-list-item-input');
-            switch(selection.type) {
+            switch (selection.type) {
                 case TOWER_OPTION_TYPES.CHECKBOX:
                     input.type = 'checkbox';
                     input.id = `tower-option-list-item-${index}-input-checkbox`;
@@ -2034,6 +2095,10 @@
         const queue = document.createElement('div');
         queue.id = 'tower-stats-queue';
 
+        const too_big_indicator = document.createElement('div');
+        too_big_indicator.id = 'tower-stats-queue-too-big';
+        too_big_indicator.textContent = 'Loading...';
+
         const lower = document.createElement('div');
         lower.id = 'tower-stats-title-lower';
         lower.textContent = 'Loading...';
@@ -2052,6 +2117,7 @@
         stats.appendChild(title);
         stats.appendChild(subtitle);
         stats.appendChild(queue);
+        stats.appendChild(too_big_indicator);
         stats.appendChild(lower);
         stats.appendChild(slain);
         stats.appendChild(loot);
@@ -2081,52 +2147,77 @@
 
         const queue = document.getElementById('tower-stats-queue');
         queue.onscroll = update_mob_queue_masks;
+
         queue.replaceChildren(); // empty children
-
         const enemies = get_queue() ?? [];
-        for (const enemy in enemies) {
-            // const { name, image, hp, maxHp } = enemy;
-            const item = document.createElement('div');
-            item.classList.add('tower-stats-enemy');
 
-            const index = document.createElement('div');
-            const image = document.createElement('div');
-            const stacked = document.createElement('div');
-            const wrapper_name = document.createElement('div');
-            const wrapper_hp = document.createElement('div');
-            const name = document.createElement('div');
-            const hp = document.createElement('div');
-            index.classList.add('tower-stats-enemy-index')
-            image.classList.add('tower-stats-enemy-image');
-            stacked.classList.add('tower-stats-enemy-stacked-info');
-            wrapper_name.classList.add('tower-stats-enemy-name-wrapper');
-            wrapper_hp.classList.add('tower-stats-enemy-hp-wrapper');
-            name.classList.add('tower-stats-enemy-name');
-            hp.classList.add('tower-stats-enemy-hp');
+        const too_big_indicator = document.getElementById('tower-stats-queue-too-big');
+        if (too_big_indicator !== null) {
+            too_big_indicator.innerHTML = 'Your queue size is &gt;&equals; 100!<br />Hiding the queue to save on resources...';
+        }
 
-            index.textContent = `${enemy}`;
-            image.style.backgroundImage = `url('${enemies[enemy]['image']}')`;
-            if (enemies[enemy]['clone']) {
-                image.classList.add('tower-stats-enemy-image-clone');
-                image.style.backgroundSize = '0 0';
+        const too_big = enemies.length >= 100;
+        if (too_big) {
+            if (!queue.classList.contains('too-big')) {
+                queue.classList.add('too-big');
             }
-            name.textContent = `${enemies[enemy]['name']}`;
-            hp.textContent = `${enemies[enemy]['hp']}/${enemies[enemy]['maxHp']}`;
+            if (!too_big_indicator.classList.contains('too-big')) {
+                too_big_indicator.classList.add('too-big');
+            }
+        } else {
+            if (queue.classList.contains('too-big')) {
+                queue.classList.remove('too-big');
+            }
+            if (too_big_indicator.classList.contains('too-big')) {
+                too_big_indicator.classList.remove('too-big');
+            }
+        }
 
-            const percentage = enemies[enemy]['hp'] / enemies[enemy]['maxHp'];
-            wrapper_hp.style.setProperty('--current-percentage', `${percentage * 100}%`);
+        if (!too_big) {
+            for (const enemy in enemies) {
+                // const { name, image, hp, maxHp } = enemy;
+                const item = document.createElement('div');
+                item.classList.add('tower-stats-enemy');
 
-            wrapper_name.appendChild(name);
-            wrapper_hp.appendChild(hp);
+                const index = document.createElement('div');
+                const image = document.createElement('div');
+                const stacked = document.createElement('div');
+                const wrapper_name = document.createElement('div');
+                const wrapper_hp = document.createElement('div');
+                const name = document.createElement('div');
+                const hp = document.createElement('div');
+                index.classList.add('tower-stats-enemy-index')
+                image.classList.add('tower-stats-enemy-image');
+                stacked.classList.add('tower-stats-enemy-stacked-info');
+                wrapper_name.classList.add('tower-stats-enemy-name-wrapper');
+                wrapper_hp.classList.add('tower-stats-enemy-hp-wrapper');
+                name.classList.add('tower-stats-enemy-name');
+                hp.classList.add('tower-stats-enemy-hp');
 
-            stacked.appendChild(wrapper_name);
-            stacked.appendChild(wrapper_hp);
+                index.textContent = `${enemy}`;
+                image.style.backgroundImage = `url('${enemies[enemy]['image']}')`;
+                if (enemies[enemy]['clone']) {
+                    image.classList.add('tower-stats-enemy-image-clone');
+                    image.style.backgroundSize = '0 0';
+                }
+                name.textContent = `${enemies[enemy]['name']}`;
+                hp.textContent = `${enemies[enemy]['hp']}/${enemies[enemy]['maxHp']}`;
 
-            item.appendChild(index);
-            item.appendChild(image);
-            item.appendChild(stacked);
+                const percentage = enemies[enemy]['hp'] / enemies[enemy]['maxHp'];
+                wrapper_hp.style.setProperty('--current-percentage', `${percentage * 100}%`);
 
-            queue.appendChild(item);
+                wrapper_name.appendChild(name);
+                wrapper_hp.appendChild(hp);
+
+                stacked.appendChild(wrapper_name);
+                stacked.appendChild(wrapper_hp);
+
+                item.appendChild(index);
+                item.appendChild(image);
+                item.appendChild(stacked);
+
+                queue.appendChild(item);
+            }
         }
 
         const title = document.getElementById('tower-stats-title');
