@@ -13,7 +13,7 @@
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
     // increase anytime the localStorage schema changes
-    const TRACKER_VERSION = 2;
+    const TRACKER_VERSION = 3;
     const LOCALSTORAGE_VERSION_KEY = '__SAVED_TOWER_TRACKER_VERSION__';
     const INSTANCE_KEY = '__DOGONLINE_TOWER_TRACKER_INSTANCE__';
     const get_saved_tracker_version = () => {
@@ -1916,7 +1916,7 @@
             options = {};
             CACHE.set('user_options', options);
         }
-        for (const [key, value] of Object.entries({ scrolling: false, congo: true, foreverloot: false, keyboard: false, dogmaticseal: true })) {
+        for (const [key, value] of Object.entries({ scrolling: false, congo: true, foreverloot: false, keyboard: false, dogmaticseal: true, hidewhenbig: true, })) {
             if (typeof options[key] !== 'boolean') options[key] = value;
         }
         if (!options.keyboard_bindings || typeof options.keyboard_bindings !== 'object' || Array.isArray(options.keyboard_bindings)) options.keyboard_bindings = {};
@@ -1965,6 +1965,10 @@
             option('Queue of enemies behind door', 'congo', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Persist loot between sessions', 'foreverloot', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Using Dogmatic Seal', 'dogmaticseal', TOWER_OPTION_TYPES.CHECKBOX, set_value),
+            option('Hide queue when >= 100 enemies', 'hidewhenbig', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
+                set_value(key, value);
+                mob_queue_info_update();
+            }),
             option('Keyboard controls', 'keyboard', TOWER_OPTION_TYPES.CHECKBOX, set_value),
         ];
 
@@ -2188,7 +2192,7 @@
             too_big_indicator.innerHTML = 'Your queue size is &gt;&equals; 100!<br />Hiding the queue to save on resources...';
         }
 
-        const too_big = enemies.length >= 100;
+        const too_big = enemies.length >= 100 && (CACHE.get('user_options')?.['hidewhenbig'] ?? true);
         if (too_big) {
             if (!queue.classList.contains('too-big')) {
                 queue.classList.add('too-big');
@@ -2357,7 +2361,7 @@
                 }
             } finally {
                 // finish only the matching action
-                const banish_resolved = item?.['name'] === 'Flowering Sakura Stick' && action?.effects.banish;
+                const banish_resolved = (item?.['name'] === 'Very Cool Stick' || item?.['name'] ===  'Even Cooler Stick' || item?.['name'] === 'Flowering Sakura Stick') && action?.effects.banish;
                 if (action !== null && pending_weapon_use === action && (!state['resolving_weapon_use'] || banish_resolved)) {
                     CACHE.assign('tracking', { pending: null });
                     pending_weapon_use = null;
