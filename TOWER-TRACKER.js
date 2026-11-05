@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torment Nexus Tracker
 // @namespace    http://tampermonkey.net/
-// @version      5.0.0
+// @version      5.0.1
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
 // @match        https://*.dogonline.net/*
