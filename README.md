@@ -33,6 +33,14 @@ Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12
 (Some browsers might require you to type `allow pasting` before doing so)
 
 ## Latest Updates
+**NEW 11/4/2026**<BR />
+- Works in light mode now! (for real this time!!!)
+- Dogmatic Seal option added to options menu
+- Queue list automatically hides >= 100 enemies
+- Latest loot shows up at the top of the list so you don't have to keep scrolling
+
+----
+
 **NEW 11/2/2026**<BR />
 Keyboard controls now integrated into the main tracker in commit [`77ace4c`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/77ace4c6f4bf37c419cee8a4777954aeec5046e8)!
 - Toggleable option
