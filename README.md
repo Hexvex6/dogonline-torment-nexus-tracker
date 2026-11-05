@@ -23,6 +23,8 @@ If you find this tool useful, and you have a dog pop / pawpsicle to spare... `H2
 
 <img width="1200" alt="image" src="https://github.com/user-attachments/assets/f14f0bac-83c3-49b9-98ca-12d280e50fa9" />
 
+Upgrading works the same, but just replace the entirety of the text with the latest version instead of making a new script.
+
 ### Via Console (F12)
 Copy the code in [TOWER-TRACKER.js](TOWER-TRACKER.js) using the button provided by GitHub:
 <br />
