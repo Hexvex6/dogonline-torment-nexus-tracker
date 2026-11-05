@@ -43,6 +43,8 @@ Lots of QoL added in  commit [`c290444`](https://github.com/Savestate2A03/dogonl
 - Latest loot shows up at the top of the list so you don't have to keep scrolling
 - Tower Floor Select and Buttons now appear at the top of the webpage (added in commit [`f2cfcdf`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/f2cfcdfe0cd6d69206a3359c0d8d32eeee24923e), thank you amgg!)
 - Option in menu added to allow disabled weapon presses to advance text (added in commit [`4abaae0`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/4abaae0dffcdf7fd19a36a8ec69fd348fdf7d20c))
+- Loot tracking classification! (added in commit [`ab5e74a`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/ab5e74a6624dfef9353c1fb798d3cef2b948fc86), with help from bethan (mazel) in [PR #2](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/pull/2))
+<img width="230" height="429" alt="image" src="https://github.com/user-attachments/assets/85eeac0b-6eb9-490b-b31e-6fcaf307fd0e" />
 
 ----
 
