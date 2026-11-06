@@ -51,7 +51,7 @@ New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/do
 ## Using
 ### Via Tapermonkey
 
-Read the [Tampermonkey guide](TAMPERMONKEY-GUIDE.md].
+Read the [Tampermonkey guide](TAMPERMONKEY-GUIDE.md).
 
 ### Via Console (F12)
 Copy the code in [TOWER-TRACKER.js](TOWER-TRACKER.js) using the button provided by GitHub:
