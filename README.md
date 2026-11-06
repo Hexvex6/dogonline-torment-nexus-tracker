@@ -25,6 +25,7 @@ If you find this tool useful, and you have a dog pop / pawpsicle to spare... `H2
 - Options and Loot show on map
 - Some CSS optimizations
 - Option to disable queue entirely
+- Add DOGGI export for tower logging efforts
 
 ----
 
