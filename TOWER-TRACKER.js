@@ -1748,6 +1748,13 @@
         if (died) {
             const stats = get_session_stats();
             stats.slain++;
+
+            const options = CACHE.get("user_options");
+            // check if next in line is a clone.
+            if(options.soundalert && queue.length > 2 && queue[1].clone){
+                new Audio("https://dogonline.net/audio/woof.mp3").play();
+            }
+
             // update enemy loot stats
             const section_count = stats.loot.length;
             const enemy = get_enemy_loot(stats, prev);
@@ -2145,6 +2152,7 @@
                 mob_queue_info_update();
             }),
             option('Disabled weapons advances text', 'disabledweaponsadvancestext', TOWER_OPTION_TYPES.CHECKBOX, set_value),
+            option('Alert when queue is only clones', 'soundalert', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Keyboard controls', 'keyboard', TOWER_OPTION_TYPES.CHECKBOX, set_value),
         ];
 
