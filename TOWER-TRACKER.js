@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torment Nexus Tracker
 // @namespace    http://tampermonkey.net/
-// @version      5.0.1
+// @version      5.0.2
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
 // @match        https://*.dogonline.net/*
@@ -11,6 +11,7 @@
 // @downloadURL  https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
 // @homepage     https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/
 // @homepageURL  https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/
+// @top-level-await
 // ==/UserScript==
 
 (await(async () => {
@@ -263,6 +264,7 @@
                 position: relative;
                 top: 0px;
                 left: 0px;
+                color: inherit;
 
                 &:hover {
                     text-shadow: 0 0 2px white;
@@ -274,6 +276,7 @@
                 }
 
                 &::before {
+                    color: inherit;
                     content: "";
                     font-family: NDS BIOS, sans-serif;
                     font-size: 32px;
