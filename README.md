@@ -3,16 +3,30 @@ Track your queue and loot for dogonline.net when torment nexus-ing.
 
 <!-- https://docs-md.com/markdown-toc-generator -->
 ## Table of Contents
-- [Cute Splash Image](#cute-splash-image)
-- [Latest Updates](#latest-updates)
 - [Using](#using)
   - [Via Tapermonkey](#via-tapermonkey)
   - [Via Console (F12)](#via-console-f12)
+- [Cute Splash Image](#cute-splash-image)
+- [Latest Updates](#latest-updates)
 - [Current Possible Bugs](#current-possible-bugs)
 - [To-Do](#to-do)
 - [Demonstration Video](#demonstration-video)
 
 If you find this tool useful, and you have a dog pop / pawpsicle to spare... `H2N7E5A3` 🥺
+
+## Using
+### Via Tapermonkey
+
+Read the [Tampermonkey guide](TAMPERMONKEY-GUIDE.md).
+
+### Via Console (F12)
+Copy the code in [TOWER-TRACKER.js](TOWER-TRACKER.js) using the button provided by GitHub:
+<br />
+<img width="313" height="122" alt="image" src="https://github.com/user-attachments/assets/0cc778f8-ca16-4d30-8339-f39a64025fd9" />
+
+Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12 to open devtools, paste the code into your console, then press Enter.
+
+(Some browsers might require you to type `allow pasting` before doing so)
 
 ## Cute Splash Image
 
@@ -57,20 +71,6 @@ New options menu added in commit [`8d8e8c5`](https://github.com/Savestate2A03/do
 - Congo line enable/disable
 - Automatic scrolling enable/disable
 <img width="360" height="158" alt="image" src="https://github.com/user-attachments/assets/2504cb85-8220-4e81-9298-e9e42c2805a9" />
-
-## Using
-### Via Tapermonkey
-
-Read the [Tampermonkey guide](TAMPERMONKEY-GUIDE.md).
-
-### Via Console (F12)
-Copy the code in [TOWER-TRACKER.js](TOWER-TRACKER.js) using the button provided by GitHub:
-<br />
-<img width="313" height="122" alt="image" src="https://github.com/user-attachments/assets/0cc778f8-ca16-4d30-8339-f39a64025fd9" />
-
-Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12 to open devtools, paste the code into your console, then press Enter.
-
-(Some browsers might require you to type `allow pasting` before doing so)
 
 ## Current Possible Bugs
 
