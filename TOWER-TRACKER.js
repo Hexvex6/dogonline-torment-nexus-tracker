@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torment Nexus Tracker
 // @namespace    http://tampermonkey.net/
-// @version      5.0.2
+// @version      5.0.3
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
 // @match        https://*.dogonline.net/*
@@ -18,7 +18,7 @@
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
     // increase anytime the localStorage schema changes
-    const TRACKER_VERSION = 5;
+    const TRACKER_VERSION = 6;
     const LOCALSTORAGE_VERSION_KEY = '__SAVED_TOWER_TRACKER_VERSION__';
     const INSTANCE_KEY = '__DOGONLINE_TOWER_TRACKER_INSTANCE__';
     const get_saved_tracker_version = () => {
@@ -130,7 +130,7 @@
     //  - log (original site logs + warn/error)
     //  - warn
     //  - error
-    const LOGGING_LEVEL = 'log';
+    const LOGGING_LEVEL = 'everything';
 
     const SAVED_LOCALSTORAGE_OBJECTS = [
         'state',
@@ -318,7 +318,7 @@
             display: grid;
             grid-template-rows: 1fr;
             margin: 4px 0 0 22px;
-            padding: 0 10px 6px 2px;
+            padding: 0 10px 6px 2.5px;
             border: 0;
             border-left-width: 0px;
             border-left-style: none;
@@ -1288,7 +1288,7 @@
         const active = raw['active'] ?? (raw['state'] === 'active');
         if (active !== true) {
             clear_tower_tracking();
-            mob_queue_info_hide();
+            mob_queue_info_update();
             return null;
         }
         const ui = raw['ui'];
@@ -2005,40 +2005,89 @@
         }
     };
 
-    const update_mob_queue_css_variables = () => {
-        if (!instance.is_current()) return;
+    const mob_queue_css_updates = { previous: null };
 
-        if (get_dogonline_style('tower_towerOptions__') !== null) {
-            reorder_tower_options_start_to_top();
-        }
-
-        const tower = document.querySelector('div[class^="tower_towerGameplay"], div[class*=" tower_towerGameplay"]');
-        if (tower === null) {
-            mob_queue_info_hide();
-            return;
-        }
-        const stats = document.querySelector('#tower-stats');
-        if (stats === null) return;
+    // keep track of the display inputs
+    const get_mob_queue_css_inputs = () => {
         const state = CACHE.get('state');
-        stats.style.display = state?.['active'] && state?.['mob']?.['visible'] ? 'flex' : 'none';
-
-        update_current_mob_grayscale_animation();
-        update_mob_queue_masks();
-        update_upcoming_mobs();
-
+        const tilekey = get_tile_key(state?.['coordinates']);
         const main = document.querySelector('main[class^="Layout_main"], main[class*=" Layout_main"]');
-        if (main === null) return;
+        const portrait = document.querySelector('div[class*="tower_tuiMobPortrait"] div[class*="tower_portraitImageContainer"] img[class*="tower_portraitImage"]');
+        const bounds = main?.getBoundingClientRect();
+        return [
+            document.querySelector('div[class^="tower_towerGameplay"], div[class*=" tower_towerGameplay"]'),
+            document.querySelector('[class^="tower_towerOptions__"], [class*=" tower_towerOptions__"]'),
+            document.getElementById('tower-otions-restyling-order'),
+            document.getElementById('tower-stats'),
+            document.getElementById('tower-options'),
+            main, bounds?.top, bounds?.left, bounds?.width, bounds?.height,
+            main?.clientLeft, main?.clientWidth, document.documentElement.clientWidth,
+            state?.['active'], state?.['mob']?.['visible'], tilekey,
+            CACHE.get('user_options')?.['congo'], upcoming_mob_revision,
+            portrait, portrait?.classList.contains('tower-stats-enemy-image-clone'),
+            CACHE.get('enemy_queue')?.[tilekey]?.[0]?.['clone'] === true, CACHE.get('clone_grayscale'),
+            document.querySelector('div[class^="tower_tuiMobPortrait__"], div[class*=" tower_tuiMobPortrait__"]'),
+            ...upcoming_mobs.slots.flatMap(slot => [slot, slot.parentElement, slot.firstElementChild]),
+            ...['tower-stats-queue', 'tower-stats-loot-list'].flatMap(id => {
+                const list = document.getElementById(id);
+                return [list, list?.clientHeight, list?.scrollHeight, list?.scrollTop];
+            }),
+        ];
+    };
 
-        const { top, left, right, bottom } = main.getBoundingClientRect();
-        stats.style.setProperty('--top', `${Math.floor(top)}px`);
-        stats.style.setProperty('--left', `${Math.floor(left)}px`);
+    // hopefully this element-aware approach will reduce a lot of the re-processing of the CSS updates
+    // that was causing a lot of lag. maybe or maybe not, we will see.
+    const update_mob_queue_css_variables = (reason = 'manual', entries = []) => {
+        if (!instance.is_current()) return;
+        reason = typeof reason === 'string' ? reason : reason?.type;
+        if (reason !== 'manual') {
+            // ignore moving slot styles
+            if (reason === 'mutation' && entries.length > 0 && entries.every(entry =>
+                entry.type === 'attributes' && entry.target.closest('.tower-stats-upcoming-mob') !== null
+            )) return;
+            const inputs = get_mob_queue_css_inputs();
+            const previous = mob_queue_css_updates.previous;
+            if (previous !== null && inputs.length === previous.length && inputs.every((value, index) => value === previous[index])) return;
+        }
 
-        const options = document.getElementById('tower-options');
-        if (options !== null) {
-            const edge = Math.min(document.documentElement.clientWidth, left + main.clientLeft + main.clientWidth);
-            options.style.display = getComputedStyle(stats).display === 'none' ? 'none' : 'flex';
-            options.style.setProperty('--top', `${Math.floor(top)}px`);
-            options.style.setProperty('--right', `${Math.floor(document.documentElement.clientWidth - edge)}px`);
+        try {
+            if (get_dogonline_style('tower_towerOptions__') !== null) {
+                reorder_tower_options_start_to_top();
+            }
+
+            const tower = document.querySelector('div[class^="tower_towerGameplay"], div[class*=" tower_towerGameplay"]');
+            if (tower === null) {
+                mob_queue_info_hide();
+                return;
+            }
+            const options = document.getElementById('tower-options');
+            if (options !== null) options.style.display = 'flex';
+            const stats = document.querySelector('#tower-stats');
+            if (stats === null) return;
+            const state = CACHE.get('state');
+            stats.style.display = 'flex';
+            if (state?.['active'] && state?.['mob']?.['visible']) mob_queue_info_show_queue_only();
+            else mob_queue_info_hide_queue_only();
+
+            update_current_mob_grayscale_animation();
+            update_mob_queue_masks();
+            update_upcoming_mobs();
+
+            const main = document.querySelector('main[class^="Layout_main"], main[class*=" Layout_main"]');
+            if (main === null) return;
+
+            const { top, left, right, bottom } = main.getBoundingClientRect();
+            stats.style.setProperty('--top', `${Math.floor(top)}px`);
+            stats.style.setProperty('--left', `${Math.floor(left)}px`);
+
+            if (options !== null) {
+                const edge = Math.min(document.documentElement.clientWidth, left + main.clientLeft + main.clientWidth);
+                options.style.setProperty('--top', `${Math.floor(top)}px`);
+                options.style.setProperty('--right', `${Math.floor(document.documentElement.clientWidth - edge)}px`);
+            }
+        } finally {
+            // lastly bundle in our own display changes
+            mob_queue_css_updates.previous = get_mob_queue_css_inputs();
         }
     }
 
@@ -2085,7 +2134,17 @@
             options = {};
             CACHE.set('user_options', options);
         }
-        for (const [key, value] of Object.entries({ scrolling: false, congo: true, foreverloot: false, keyboard: false, dogmaticseal: true, hidewhenbig: true, disabledweaponsadvancestext: false, })) {
+        const defaults = {
+            scrolling: false,
+            congo: true,
+            foreverloot: false,
+            keyboard: false,
+            dogmaticseal: true,
+            alwayshidequeuelist: false,
+            hidewhenbig: true,
+            disabledweaponsadvancestext: false
+        };
+        for (const [key, value] of Object.entries(defaults)) {
             if (typeof options[key] !== 'boolean') options[key] = value;
         }
         if (!options.keyboard_bindings || typeof options.keyboard_bindings !== 'object' || Array.isArray(options.keyboard_bindings)) options.keyboard_bindings = {};
@@ -2120,6 +2179,7 @@
             if (!instance.is_current()) return;
             CACHE.get('user_options')[key] = value;
             update_keyboard_options();
+            update_hide_queue_when_big_option();
             localstorage_save();
             update_mob_queue_css_variables();
             window.dispatchEvent(new Event('tower-tracker-options-changed'));
@@ -2135,6 +2195,14 @@
                 input.closest('.tower-option-list-item').classList.toggle('disabled', disabled);
             }
         };
+        const update_hide_queue_when_big_option = () => {
+            const disabled = get_value('alwayshidequeuelist') === true;
+            const input = options.querySelector('input[name="hidewhenbig"]');
+            if (input) {
+                input.disabled = disabled;
+                input.closest('.tower-option-list-item').classList.toggle('disabled', disabled);
+            }
+        };
 
         let currently_expanded = false;
 
@@ -2143,6 +2211,10 @@
             option('Queue of enemies behind door', 'congo', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Persist loot between sessions', 'foreverloot', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Using Dogmatic Seal', 'dogmaticseal', TOWER_OPTION_TYPES.CHECKBOX, set_value),
+            option('Always hide queue list', 'alwayshidequeuelist', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
+                set_value(key, value);
+                mob_queue_info_update();
+            }),
             option('Hide queue when >= 100 enemies', 'hidewhenbig', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
                 set_value(key, value);
                 mob_queue_info_update();
@@ -2371,10 +2443,17 @@
 
         const too_big_indicator = document.getElementById('tower-stats-queue-too-big');
         if (too_big_indicator !== null) {
-            too_big_indicator.innerHTML = 'Your queue size is &gt;&equals; 100!<br />Hiding the queue to save on resources...';
+            if (CACHE.get('user_options')?.['alwayshidequeuelist'] ?? false) {
+                too_big_indicator.innerHTML = 'You are currently hiding your queue.<br />(disable this in Options)';
+            } else {
+                too_big_indicator.innerHTML = 'Your queue size is &gt;&equals; 100!<br />Hiding the queue to save on resources...';
+            }
         }
 
-        const too_big = enemies.length >= 100 && (CACHE.get('user_options')?.['hidewhenbig'] ?? true);
+        const too_big = (
+            (enemies.length >= 100 && (CACHE.get('user_options')?.['hidewhenbig'] ?? true)) ||
+            (CACHE.get('user_options')?.['alwayshidequeuelist'] ?? false)
+        );
         if (too_big) {
             if (!queue.classList.contains('too-big')) {
                 queue.classList.add('too-big');
@@ -2499,6 +2578,11 @@
         update_mob_queue_css_variables();
     }
 
+    const get_caller = () => {
+        // debugging ...
+        return (new Error().stack).split('\n')[2].split('@')[0].trim();
+    }
+
     const mob_queue_info_show = () => {
         const stats = document.body.querySelector('#tower-stats');
         if (stats === null) return;
@@ -2510,6 +2594,20 @@
         for (const id of ['tower-stats', 'tower-options']) {
             const element = document.getElementById(id);
             if (element !== null) element.style.display = 'none';
+        }
+    }
+
+    const mob_queue_info_hide_queue_only = () => {
+        for (const id of ['tower-stats-title', 'tower-stats-subtitle', 'tower-stats-queue', 'tower-stats-queue-too-big']) {
+            const element = document.getElementById(id);
+            if (element !== null) element.style.display = 'none';
+        }
+    }
+
+    const mob_queue_info_show_queue_only = () => {
+        for (const id of ['tower-stats-title', 'tower-stats-subtitle', 'tower-stats-queue', 'tower-stats-queue-too-big']) {
+            const element = document.getElementById(id);
+            if (element !== null) element.style.display = '';
         }
     }
 
@@ -2547,15 +2645,9 @@
                 }
 
                 mob_queue_info_update();
-
-                if (status.mob.visible) {
-                    mob_queue_info_show();
-                } else {
-                    mob_queue_info_hide();
-                }
             } finally {
                 // finish only the matching action
-                const banish_resolved = (item?.['name'] === 'Very Cool Stick' || item?.['name'] ===  'Even Cooler Stick' || item?.['name'] === 'Flowering Sakura Stick') && action?.effects.banish;
+                const banish_resolved = (item?.['name'] === 'Very Cool Stick' || item?.['name'] === 'Even Cooler Stick' || item?.['name'] === 'Flowering Sakura Stick') && action?.effects.banish;
                 if (action !== null && pending_weapon_use === action && (!state['resolving_weapon_use'] || banish_resolved)) {
                     CACHE.assign('tracking', { pending: null });
                     pending_weapon_use = null;
@@ -2626,6 +2718,8 @@
         });
     };
 
+    let previous_enemy_queue_setup = null;
+
     const setup_enemy_queue = () => {
         const queue = CACHE.get('enemy_queue');
         if (queue === null || typeof queue !== 'object' || Array.isArray(queue)) {
@@ -2638,6 +2732,10 @@
         const pending = CACHE.get('removal_pending');
         if (pending === null || typeof pending !== 'object' || typeof pending.banished !== 'boolean') {
             CACHE.set('removal_pending', null);
+        }
+        if (JSON.stringify(previous_enemy_queue_setup) !== JSON.stringify({ queue, hps, pending })) {
+            console.notice('Enemy queue set up:', queue, hps, pending);
+            previous_enemy_queue_setup = { queue, hps, pending };
         }
     };
 
@@ -2668,7 +2766,8 @@
     const setup_display_callbacks = () => {
         const element = document.getElementById('__next');
 
-        const mutation = new MutationObserver(update_mob_queue_css_variables);
+        // give reason to update to reduce unnecessary css updates
+        const mutation = new MutationObserver(entries => update_mob_queue_css_variables('mutation', entries));
         mutation.observe(element, {
             childList: true,
             subtree: true,
@@ -2676,14 +2775,16 @@
             characterData: true,
         });
 
-        const resize = new ResizeObserver(update_mob_queue_css_variables);
+        // give reason to update to reduce unnecessary css updates
+        const resize = new ResizeObserver(() => update_mob_queue_css_variables('resize'));
         resize.observe(element);
         const queue = document.getElementById('tower-stats-queue');
         if (queue !== null) resize.observe(queue);
         const looted = document.getElementById('tower-stats-loot-list');
         if (looted !== null) resize.observe(looted);
 
-        const intersection = new IntersectionObserver(update_mob_queue_css_variables);
+        // give reason to update to reduce unnecessary css updates
+        const intersection = new IntersectionObserver(() => update_mob_queue_css_variables('intersection'));
         intersection.observe(element);
 
         window.addEventListener('resize', update_mob_queue_css_variables, { passive: true });
@@ -2705,6 +2806,7 @@
     // moving this to its own function with the new version guarding in place
     const initialize_tracker = async () => {
         if (!instance.is_current()) return;
+        mob_queue_css_updates.previous = null;
         CACHE.get('display_cleanup')?.();
         instance.display_cleanup = null;
         document.getElementById('tower-options')?.remove(); // if loading script again
