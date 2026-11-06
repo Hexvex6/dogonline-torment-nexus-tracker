@@ -5,6 +5,10 @@ If you don't have Tampermonkey, you can get it here:
 - Tampermonkey for [Chrome](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en)
 - Tampermonkey for [Safari](https://www.tampermonkey.net/index.php?browser=safari&locale=en)
 
+## Preface
+
+If you installed an older version by copy and pasting the file into Tampermonkey, I recommend deleting the script in the Tampermonkey Dashboard and re-adding it via the below instructions.
+
 ## Initial Setup
 
 If you are using Chrome, you will first need to allow the extension to utilize Userscripts in the extension settings:
