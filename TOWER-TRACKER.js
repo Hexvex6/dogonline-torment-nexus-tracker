@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torment Nexus Tracker
 // @namespace    http://tampermonkey.net/
-// @version      5.0.3
+// @version      5.0.4
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
 // @match        https://*.dogonline.net/*
@@ -18,7 +18,7 @@
     // store data on window
     const CACHE_KEY = '__DOG_DATA_TOWER_QUEUE_WINDOW_KEY__';
     // increase anytime the localStorage schema changes
-    const TRACKER_VERSION = 6;
+    const TRACKER_VERSION = 7;
     const LOCALSTORAGE_VERSION_KEY = '__SAVED_TOWER_TRACKER_VERSION__';
     const INSTANCE_KEY = '__DOGONLINE_TOWER_TRACKER_INSTANCE__';
     const get_saved_tracker_version = () => {
@@ -227,6 +227,46 @@
         #tower-option-list {
             min-height: 0;
         }
+        .tower-option-button {
+            text-align: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border-style: solid;
+            border-width: 1px;
+            padding: 4px 16px;
+            margin-top: 14px;
+            position: relative;
+            user-select: none;
+
+            &:hover {
+                background-color: #333;
+            }
+
+            &:active {
+                background-color: #161616;
+                top: 1px;
+                left: 1px;
+            }
+        }
+        :where(input).tower-option-button {
+            appearance: none;
+            display: block;
+            box-sizing: border-box;
+            min-width: 0;
+            border-color: currentColor;
+            border-radius: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            outline: none;
+            user-select: text;
+
+            &::placeholder {
+                color: #888;
+                opacity: 1;
+            }
+        }
         .tower-option-list-item {
             display: flex;
             flex-direction: row;
@@ -302,7 +342,7 @@
         .tower-option-list-item-label { }
         #tower-options-restart {
             display: block;
-            margin: 6px 0 0;
+            margin: 16px 0 0;
             padding: 0;
             border: 0;
             background: none;
@@ -1001,6 +1041,14 @@
             return `window['${CACHE_KEY}']${trailing}`;
         },
     };
+
+    const delay = callback => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                callback();
+            });
+        });
+    }
 
     // save current state to localstorage
     const localstorage_save = () => {
@@ -2147,6 +2195,7 @@
         for (const [key, value] of Object.entries(defaults)) {
             if (typeof options[key] !== 'boolean') options[key] = value;
         }
+        options.doggi_export_name = typeof options.doggi_export_name === 'string' ? options.doggi_export_name.trim() : '';
         if (!options.keyboard_bindings || typeof options.keyboard_bindings !== 'object' || Array.isArray(options.keyboard_bindings)) options.keyboard_bindings = {};
         const used = new Set();
         for (const [role, binding] of Object.entries(TOWER_KEYBOARD_BINDINGS)) {
@@ -2172,6 +2221,103 @@
         SELECT: 'select',
         MULTISELECT: 'multiselect',
     };
+
+    const export_loot_for_doggi = name => {
+        // modified cyrb53 algorithm
+        const hash_8_characters = str => {
+            let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+            for (let i = 0, ch; i < str.length; i++) {
+                ch = str.charCodeAt(i);
+                h1 = Math.imul(h1 ^ ch, 2654435761);
+                h2 = Math.imul(h2 ^ ch, 1597334677);
+            }
+            h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+            h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+            const hashInt = (h1 >>> 0) ^ (h2 >>> 0);
+            return (hashInt >>> 0).toString(16).padStart(8, '0');
+        };
+
+        const sanitized = filename => filename
+            .replace(/[^a-zA-Z0-9\-]/g, '_')
+            .replace(/_{2,}/g, '_')
+            .replace(/^_+|_+$/g, '');
+
+        const loot = get_session_stats()?.['loot'] ?? null;
+        if (loot === null) {
+            console.warn('No loot to export!');
+            return;
+        }
+        console.info('Exporting loot for DOGGI!', loot);
+        const exported = {
+            sources: {},
+            recordedAt: (new Date().toISOString()),
+            name,
+            doggiExportVersion: 1,
+        };
+        for (const item of loot) {
+            exported.sources[item.name] = {
+                count: item.count,
+                items: item.loot.map(which => ({ name: which.name, quantity: which.count }))
+            };
+        }
+
+        const hash = hash_8_characters(JSON.stringify(exported.sources));
+        exported['sourcesHash'] = hash;
+
+        const finalized = JSON.stringify(exported, undefined, 2);
+        const blob = new Blob([finalized], { type: 'text/plain;charset=utf-8' });
+        const objurl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.style.display = 'none';
+        anchor.href = objurl;
+        anchor.download = sanitized(`DOGGI-${name}-${Date.now()}`) + '.json';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(objurl);
+    }
+
+    const doggi_button_clicked = (doggi, get_value) => {
+        if (!instance.is_current()) return;
+        const bounds = doggi.getBoundingClientRect();
+        const input = document.createElement('input');
+        input.id = doggi.id;
+        input.className = doggi.className;
+        input.type = 'text';
+        input.placeholder = 'Name?';
+        input.value = get_value('doggi_export_name');
+        input.autocomplete = 'off';
+        input.setAttribute('aria-label', 'DOGGI export name');
+        input.style.width = `${bounds.width}px`;
+        input.style.height = `${bounds.height}px`;
+        const restore = () => {
+            if (!instance.is_current() || !input.isConnected) return;
+            input.onblur = null;
+            input.replaceWith(doggi);
+        };
+        input.onblur = restore;
+        input.onkeydown = event => {
+            if (!instance.is_current() || !input.isConnected || event.isComposing) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                restore();
+                return;
+            }
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            event.stopPropagation();
+            const name = input.value.trim();
+            if (name === '') return;
+            CACHE.get('user_options')['doggi_export_name'] = name;
+            localstorage_save();
+            restore();
+            export_loot_for_doggi(name);
+        };
+        doggi.replaceWith(input);
+        input.focus();
+    }
 
     const create_tower_options = () => {
         const option = (label, key, type, callback) => ({ enabled: false, label, key, type, callback });
@@ -2352,6 +2498,13 @@
         }
         content.appendChild(status);
         list.appendChild(bindings);
+
+        const doggi = document.createElement('div');
+        doggi.id = 'tower-option-doggi-export';
+        doggi.classList.add('tower-option-button');
+        doggi.textContent = "Export loot for DOGGI";
+        doggi.onclick = () => doggi_button_clicked(doggi, get_value);
+        list.appendChild(doggi);
 
         const restart = document.createElement('button');
         restart.id = 'tower-options-restart';
