@@ -19,6 +19,15 @@ If you find this tool useful, and you have a dog pop / pawpsicle to spare... `H2
 <details><summary>Expand to view</summary><img width="1016" height="1216" alt="image" src="https://github.com/user-attachments/assets/86651dc3-5ea2-4176-bc21-3b333c3d5772" /></details>
 
 ## Latest Updates
+**NEW 11/5/2026**<BR />
+- Fix light mode on chrome (actually actually for real for real this time)
+- Add `@top-level-async` to Userscript settings
+- Options and Loot show on map
+- Some CSS optimizations
+- Option to disable queue entirely
+
+----
+
 **NEW 11/4/2026**<BR />
 Lots of QoL added in  commit [`c290444`](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/commit/c290444aa3730c1aca0bff169cb412c19f9eb9f9)!
 - Works in light mode now! (for real this time!!!)
