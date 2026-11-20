@@ -1012,6 +1012,52 @@
         }
     `;
 
+    /* if is added let user input list / include default / pull from rare entries on wiki
+    const RareItems = [
+      "Freaky Token", 
+      "Devourer's Devourers",
+      "Cloud Wings",
+      "Cloudy Clouds",
+      "Cheek Wings",
+      "Wind Up Handle",
+      "Sundae Spoon",
+      "Balloon Animal",
+      "Trapcloak",
+      "Metal Maws",
+      "Books On My Head",
+      "Molly's Big Mitts",
+      "Rodins Brain...?",
+      "Unigore's Horn",
+      "Crossbones Shirt",
+      "Skull Shirt",
+      "Marigold",
+      "Headstone",
+      "Slime Paws",
+      "Cube of Slime On My Head",
+      "Weepers Weepers",
+      "Peeper's Peepers",
+      "Peeper Pup",
+      "Peeper Peeped",
+      "Mallet Mask",
+      "Dropped Ice Cream",
+      "Fridge",
+      "Hop Pot Tongue",
+      "Sludge Puddle",
+      "Barraskewer Tail",
+      "Baraskewer Buddy",
+      "Baraskewer Fins",
+      "Baraskewer Helm",
+      "Stinkie",
+      "Sniffles Sword",
+      "Leatsch Tail",
+      "Holy Cannoli",
+      "Ivory Tower",
+      "The Ochre Lord", 
+      "VIP Ocean Cruiser Ticket",
+      "Scaled Journal",
+    ];
+    */
+
     // keep data between runs
     const CACHE = {
         ensure() {
@@ -1230,6 +1276,13 @@
             else {
                 group.loot.push({ image: item.image, name: item.name, count: 1, time });
             }
+            /* need to cook on this
+            if(RareItems.includes(item.name)){
+              var celebrate = new Audio("https://github.com/D00NIK/Specialistabp/raw/refs/heads/main/resources/music/arcadespecalist.ogg");
+              celebrate.volume = 0.5;
+              celebrate.play;
+            }
+            */
         }
         group.time = time;
         if (enemy === stats.loot_enemy && enemy) enemy.received = true;
