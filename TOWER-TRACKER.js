@@ -659,8 +659,8 @@
                         image-rendering: auto;
 
                         background-image:
-                            url('/img/tower/tower_ui_lifebar.png'),
-                            url('/img/tower/tower_ui_lifebar_bg.png');
+                            url('/img/minigames/tower/tower_ui_lifebar.png'),
+                            url('/img/minigames/tower/tower_ui_lifebar_bg.png');
                         background-size:
                             var(--full-width) var(--full-height),
                             calc(var(--current-percentage) * var(--bar-scalar)) 95%;
@@ -1108,6 +1108,7 @@
             if (g2){
               g2['image'] = enemy.image;
               group = g2;
+              console.log('updated image');
             } else {
               group = { name: enemy.name, image: enemy.image, count: 0, time: 0, loot: [] };
               stats.loot.push(group);
@@ -1241,6 +1242,7 @@
                   imageupdate.image = item.image;
                   existing.count++;
                   existing.time = time;
+                  console.log('updated image');
                 }
                 else{
                   group.loot.push({ image: item.image, name: item.name, count: 1, time });
@@ -2778,7 +2780,7 @@
 
         if(!too_big && enemies.length > 0){
           
-          let total = 100;
+          let total = (enemies.length < 100) ? enemies.length : 100;
           if(!(CACHE.get('user_options')?.['hidewhenbig'] ?? true))
             total = enemies.length;
 
