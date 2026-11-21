@@ -2210,7 +2210,6 @@
             alwayshidequeuelist: false,
             soundalert: false,
             nofilter: false,
-            hidenames: false,
             hidewhenbig: true,
             disabledweaponsadvancestext: false
         };
@@ -2391,10 +2390,6 @@
                 mob_queue_info_update();
             }),
             option('Hide queue when >= 100 enemies', 'hidewhenbig', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
-                set_value(key, value);
-                mob_queue_info_update();
-            }),
-            option('Reduce screenspace by hiding item & enemy names', 'hidenames', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
                 set_value(key, value);
                 mob_queue_info_update();
             }),
@@ -2762,7 +2757,6 @@
                 too_big_indicator.classList.remove('too-big');
             }
         }
-        const hidename = ((CACHE.get('user_options')?.['hidenames'] ?? false));
 
         if(!too_big && enemies.length > 0){
           
@@ -2812,12 +2806,7 @@
 
             item.appendChild(index);
             item.appendChild(image);
-            if(!hidename){
-              item.appendChild(stacked);
-            }
-            else{
-              item.style['justify-content'] = "left";
-            }
+            item.appendChild(stacked);
             queue.appendChild(item);
             if((CACHE.get('user_options')?.['hidewhenbig'] ?? true) && count == 99){
               const tooBigInfo = document.createElement('div')
