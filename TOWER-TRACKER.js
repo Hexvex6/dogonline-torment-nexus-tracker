@@ -7,8 +7,8 @@
 // @match        https://*.dogonline.net/*
 // @icon         https://dogonline.net/img/items/weapons/Weapon_Plasma_Ranged.png
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/Hexvex6/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
-// @downloadURL  https://raw.githubusercontent.com/Hexvex6/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
+// @updateURL    https://raw.githubusercontent.com/Hexvex6/dogonline-torment-nexus-tracker/refs/heads/master/TOWER-TRACKER.js
+// @downloadURL  https://raw.githubusercontent.com/Hexvex6/dogonline-torment-nexus-tracker/refs/heads/master/TOWER-TRACKER.js
 // @homepage     https://github.com/Hexvex6/dogonline-torment-nexus-tracker
 // @homepageURL  https://github.com/Hexvex6/dogonline-torment-nexus-tracker
 // @top-level-await
