@@ -2764,7 +2764,7 @@
         }
         const hidename = ((CACHE.get('user_options')?.['hidenames'] ?? false));
 
-        if(!too_big){
+        if(!too_big && enemies.length > 0){
           
           let total = 100;
           if(!(CACHE.get('user_options')?.['hidewhenbig'] ?? true))
