@@ -368,6 +368,8 @@
             drop-shadow(0px -2px 0px var(--surface-bg))
             drop-shadow(1px 1px 1px var(--surface-bg))
             drop-shadow(1px 1px 2px color-mix(in srgb, var(--text) 15%, transparent));
+
+          text-shadow: none !important;
         }
         
         .scythe-icon-filter {
@@ -469,6 +471,11 @@
             flex-direction: column;
             align-items: center;
             gap: 4px;
+
+            text-shadow: -1px -1px 0 var(--surface-bg), 1px -1px 0 var(--surface-bg),
+            -1px 1px 0 var(--surface-bg), 1px 1px 0 var(--surface-bg);
+
+            
 
             transition: margin 0.3s ease, height 0.3s ease;
             z-index: 995;
@@ -2414,6 +2421,7 @@
             currently_expanded = !currently_expanded;
             expand.querySelector('span').textContent = currently_expanded ? '[-]' : '[+]';
             wrapper.classList.toggle('expanded', currently_expanded);
+            expand.style.color = currently_expanded ? '#fff' : '';
             update_mob_queue_css_variables();
         }
 
