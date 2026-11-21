@@ -681,6 +681,8 @@
                             line-height: 16px;
                             position: relative;
                             top: -1px;
+                            color: white !important;
+                            text-shadow: none !important;
                         }
                     }
 
