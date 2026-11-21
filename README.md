@@ -33,6 +33,16 @@ Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12
 <details><summary>Expand to view</summary><img width="1016" height="1216" alt="image" src="https://github.com/user-attachments/assets/86651dc3-5ea2-4176-bc21-3b333c3d5772" /></details>
 
 ## Latest Updates
+
+**NEW 11/21/2026**<BR />
+- Added "Clear Session Loot" button in options and added confrimation for clicking it. (from bethan's [PR #5](https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/pull/5) on upstream, thanks bethan/ mazel!)
+- Added toggle in options for a sound alert when killing clones with a big enough queue.
+- Added "Disable blur" toggle in options for removing the blur behind stats, it should improve performance if needed.
+- Added a button in the top left to hide/show all the stats, most helpful for mobile.
+- Changed the default behaviour of the queue. Rather than hiding all the entries once you have 100, it just hides any beyond that.
+
+----
+
 **NEW 11/8/2026**<BR />
 - Loot box no longer blocking "run from battle"
 - Buttons keybind indicators no longer break (`white-space: nowrap`)

@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name         Torment Nexus Tracker
 // @namespace    http://tampermonkey.net/
-// @version      5.0.6
+// @version      5.0.7
 // @description  Torment Nexus Tracker
 // @author       Rei Wolf (aka Estradiol aka Savestate)
 // @match        https://*.dogonline.net/*
 // @icon         https://dogonline.net/img/items/weapons/Weapon_Plasma_Ranged.png
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
-// @downloadURL  https://raw.githubusercontent.com/Savestate2A03/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
-// @homepage     https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/
-// @homepageURL  https://github.com/Savestate2A03/dogonline-torment-nexus-tracker/
+// @updateURL    https://raw.githubusercontent.com/Hexvex6/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
+// @downloadURL  https://raw.githubusercontent.com/Hexvex6/dogonline-torment-nexus-tracker/refs/heads/main/TOWER-TRACKER.js
+// @homepage     https://github.com/Hexvex6/dogonline-torment-nexus-tracker
+// @homepageURL  https://github.com/Hexvex6/dogonline-torment-nexus-tracker
 // @top-level-await
 // ==/UserScript==
 
@@ -164,7 +164,7 @@
             right: var(--right, 8px);
             display: flex;
             flex-direction: column;
-            z-index: 9999999;
+            z-index: 997;
             margin-right: 12px;
             margin-top: 6px;
             background-color: rgba(0, 0, 0, 0.0);
@@ -191,6 +191,18 @@
             --options-text: var(--text);
             color: var(--options-text);
             transition: color 0.5s ease;
+            font-family: NDS BIOS,sans-serif;
+            color: --text;
+            font-size: 24px;
+            --top: 0px;
+            --right: 0px;
+            top: var(--top);
+            right: var(--right);
+            display: none;
+            margin-top: 7px;
+            margin-right: 16px;
+            position:fixed;
+            z-index: 998;
 
             span {
                 cursor: pointer;
@@ -342,9 +354,30 @@
         }
         .tower-option-list-item-label { }
         #tower-options-restart:hover,
-        #tower-options-restart.confirming {
+        #tower-options-restart.confirming,
+        #tower-options-clear:hover,
+        #tower-options-clear.confirming {
             color: red;
         }
+
+        .stats-filter {
+          filter:
+            drop-shadow(2px 0px 0px var(--surface-bg))
+            drop-shadow(-2px 0px 0px var(--surface-bg))
+            drop-shadow(0px 2px 0px var(--surface-bg))
+            drop-shadow(0px -2px 0px var(--surface-bg))
+            drop-shadow(1px 1px 1px var(--surface-bg))
+            drop-shadow(1px 1px 2px color-mix(in srgb, var(--text) 15%, transparent));
+        }
+        
+        .scythe-icon-filter {
+        filter:
+          drop-shadow(calc(var(--outline-size) * 1.0) 0px 0px var(--emerald-glow))
+          drop-shadow(calc(var(--outline-size) * -1.0) 0px 0px var(--emerald-glow))
+          drop-shadow(0px calc(var(--outline-size) * 1.0) 0px var(--emerald-glow))
+          drop-shadow(0px calc(var(--outline-size) * -1.0) 0px var(--emerald-glow));
+        }
+
         #tower-keyboard-bindings {
             display: grid;
             grid-template-rows: 1fr;
@@ -423,28 +456,25 @@
             --top: 0px;
             --left: 0px;
             width: 240px;
+            height: 0px;
             position: fixed;
             margin: 0;
             padding: 0;
-            margin-top: 8px;
             margin-left: 8px;
+            margin-top: 8px;
             top: var(--top);
             left: var(--left);
             display: none;
-            overflow: visible;
+            overflow: hidden;
             flex-direction: column;
             align-items: center;
             gap: 4px;
 
-            filter:
-                drop-shadow(2px 0px 0px var(--surface-bg))
-                drop-shadow(-2px 0px 0px var(--surface-bg))
-                drop-shadow(0px 2px 0px var(--surface-bg))
-                drop-shadow(0px -2px 0px var(--surface-bg))
-                drop-shadow(1px 1px 1px var(--surface-bg))
-                drop-shadow(1px 1px 2px color-mix(in srgb, var(--text) 15%, transparent));
-
-            z-index: 999999;
+            transition: margin 0.3s ease, height 0.3s ease;
+            z-index: 995;
+            &.expanded {
+                height: 100%;
+            }
         }
         #tower-stats-title, #tower-stats-title-lower {
             font-family: NDS BIOS,sans-serif;
@@ -576,11 +606,6 @@
 
                         opacity: 1.0;
 
-                        filter:
-                            drop-shadow(calc(var(--outline-size) * 1.0) 0px 0px var(--emerald-glow))
-                            drop-shadow(calc(var(--outline-size) * -1.0) 0px 0px var(--emerald-glow))
-                            drop-shadow(0px calc(var(--outline-size) * 1.0) 0px var(--emerald-glow))
-                            drop-shadow(0px calc(var(--outline-size) * -1.0) 0px var(--emerald-glow));
                     }
                 }
 
@@ -960,53 +985,24 @@
         .tower-stats-enemy-image-clone {
             filter: grayscale(100%);
         }
+        #collapse-everything {
+          font-family: NDS BIOS,sans-serif;
+          color: --text;
+          font-size: 24px;
+          --top: 0px;
+          --left: 0px;
+          top: var(--top);
+          left: var(--left);
+          display: flex;
+          margin-top: 7px;
+          margin-left: 16px;
+          position:fixed;
+          z-index: 997;
+          user-select: none;
+          display: none;
+          width: 190px;
+        }
     `;
-
-    /* if is added let user input list / include default / pull from rare entries on wiki
-    const RareItems = [
-      "Freaky Token", 
-      "Devourer's Devourers",
-      "Cloud Wings",
-      "Cloudy Clouds",
-      "Cheek Wings",
-      "Wind Up Handle",
-      "Sundae Spoon",
-      "Balloon Animal",
-      "Trapcloak",
-      "Metal Maws",
-      "Books On My Head",
-      "Molly's Big Mitts",
-      "Rodins Brain...?",
-      "Unigore's Horn",
-      "Crossbones Shirt",
-      "Skull Shirt",
-      "Marigold",
-      "Headstone",
-      "Slime Paws",
-      "Cube of Slime On My Head",
-      "Weepers Weepers",
-      "Peeper's Peepers",
-      "Peeper Pup",
-      "Peeper Peeped",
-      "Mallet Mask",
-      "Dropped Ice Cream",
-      "Fridge",
-      "Hop Pot Tongue",
-      "Sludge Puddle",
-      "Barraskewer Tail",
-      "Baraskewer Buddy",
-      "Baraskewer Fins",
-      "Baraskewer Helm",
-      "Stinkie",
-      "Sniffles Sword",
-      "Leatsch Tail",
-      "Holy Cannoli",
-      "Ivory Tower",
-      "The Ochre Lord", 
-      "VIP Ocean Cruiser Ticket",
-      "Scaled Journal",
-    ];
-    */
 
     // keep data between runs
     const CACHE = {
@@ -1226,13 +1222,6 @@
             else {
                 group.loot.push({ image: item.image, name: item.name, count: 1, time });
             }
-            /* need to cook on this
-            if(RareItems.includes(item.name)){
-              var celebrate = new Audio("https://github.com/D00NIK/Specialistabp/raw/refs/heads/main/resources/music/arcadespecalist.ogg");
-              celebrate.volume = 0.5;
-              celebrate.play;
-            }
-            */
         }
         group.time = time;
         if (enemy === stats.loot_enemy && enemy) enemy.received = true;
@@ -1805,7 +1794,7 @@
 
             const options = CACHE.get("user_options");
             // check if next in line is a clone.
-            if(options.soundalert && queue.length > 2 && queue[1].clone){
+            if(options.soundalert && queue.length > 5 && queue[1].clone){
                 new Audio("https://dogonline.net/audio/woof.mp3").play();
             }
 
@@ -2092,8 +2081,14 @@
         // prevent buttons from being covered by session stats
         const buttons = document.querySelector('[class^="tower_tuiButtonsSection2__"], [class*=" tower_tuiButtonsSection2__"]');
         if (buttons !== null) {
-            buttons.style.zIndex = '9999997';
+            buttons.style.zIndex = '996';
         }
+        // having the player icon cover the list on smaller devices sucks. There's probably a better way to make this work?
+        /*
+        const combatItems = document.querySelector('[class^="tower_playerRow__"], [class*=" tower_playerRow__"]');
+        if (combatItems !== null){
+            combatItems.style.zIndex = '997';
+        }*/
 
         try {
             if (get_dogonline_style('tower_towerOptions__') !== null) {
@@ -2103,12 +2098,22 @@
             const tower = document.querySelector('div[class^="tower_towerGameplay"], div[class*=" tower_towerGameplay"]');
             if (tower === null) {
                 mob_queue_info_hide();
-                return;
+                return; 
             }
+
+            // the following code only runs on the tower page
+
             const options = document.getElementById('tower-options');
             if (options !== null) options.style.display = 'flex';
             const stats = document.querySelector('#tower-stats');
             if (stats === null) return;
+
+            const collapser = document.querySelector('#collapse-everything');
+            collapser.style.display = 'flex';
+
+            const optionbutton = document.querySelector('#tower-options-expand');
+            optionbutton.style.display = 'flex';
+
             const state = CACHE.get('state');
             stats.style.display = 'flex';
             if (state?.['active'] && state?.['mob']?.['visible']) mob_queue_info_show_queue_only();
@@ -2116,6 +2121,7 @@
 
             update_current_mob_grayscale_animation();
             update_upcoming_mobs();
+            managefilter();
 
             const main = document.querySelector('main[class^="Layout_main"], main[class*=" Layout_main"]');
             if (main === null) return;
@@ -2125,9 +2131,18 @@
             stats.style.setProperty('--left', `${Math.floor(left)}px`);
 
             if (options !== null) {
-                const edge = Math.min(document.documentElement.clientWidth, left + main.clientLeft + main.clientWidth);
-                options.style.setProperty('--top', `${Math.floor(top)}px`);
-                options.style.setProperty('--right', `${Math.floor(document.documentElement.clientWidth - edge)}px`);
+              const edge = Math.min(document.documentElement.clientWidth, left + main.clientLeft + main.clientWidth);
+              options.style.setProperty('--top', `${Math.floor(top)}px`);
+              options.style.setProperty('--right', `${Math.floor(document.documentElement.clientWidth - edge)}px`);
+              if(optionbutton !== null){
+                optionbutton.style.setProperty('--top', `${Math.floor(top)}px`);
+                optionbutton.style.setProperty('--right', `${Math.floor(document.documentElement.clientWidth - edge)}px`);
+              }
+            }
+            
+            if(collapser !== null){
+              collapser.style.setProperty('--top', `${Math.floor(top)}px`);
+              collapser.style.setProperty('--left', `${Math.floor(left)}px`);
             }
         } finally {
             // lastly bundle in our own display changes
@@ -2186,6 +2201,9 @@
             keyboard: false,
             dogmaticseal: true,
             alwayshidequeuelist: false,
+            soundalert: false,
+            nofilter: false,
+            hidenames: false,
             hidewhenbig: true,
             disabledweaponsadvancestext: false
         };
@@ -2369,18 +2387,28 @@
                 set_value(key, value);
                 mob_queue_info_update();
             }),
+            option('Reduce screenspace by hiding item & enemy names', 'hidenames', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
+                set_value(key, value);
+                mob_queue_info_update();
+            }),
             option('Disabled weapons advances text', 'disabledweaponsadvancestext', TOWER_OPTION_TYPES.CHECKBOX, set_value),
             option('Alert when queue is only clones', 'soundalert', TOWER_OPTION_TYPES.CHECKBOX, set_value),
+            option('Disable blur (improves performance)', 'nofilter', TOWER_OPTION_TYPES.CHECKBOX, (key, value) => {
+              set_value(key, value);
+              managefilter();
+            }),
             option('Keyboard controls', 'keyboard', TOWER_OPTION_TYPES.CHECKBOX, set_value),
         ];
 
         const options = document.createElement('div');
         options.id = 'tower-options';
 
+        
+
         const expand = document.createElement('div');
         expand.id = 'tower-options-expand';
         expand.innerHTML = 'Options <span>[+]</span>';
-
+        
         expand.onclick = () => {
             if (!instance.is_current()) return;
             currently_expanded = !currently_expanded;
@@ -2526,10 +2554,26 @@
         const clear_stats = document.createElement('div');
         clear_stats.id = 'tower-options-clear';
         clear_stats.classList.add('tower-option-button');
-        clear_stats.textContent = 'Clear session stats';
+        clear_stats.textContent = 'Clear session loot';
+        const clear_confirmation = { timeout: null, expires: 0 };
+        const clear_confirm = () => {
+          clearTimeout(clear_confirmation.timeout);
+          clear_confirmation.timeout = null;
+          clear_confirmation.expires = 0;
+          if (!instance.is_current() || !clear_stats.isConnected) return;
+          clear_stats.textContent = "Clear session loot";
+          clear_stats.classList.remove('confirming');
+        }
         clear_stats.onclick = () => {
-            if (!instance.is_current()) {
-                return;
+            if (!instance.is_current() || !clear_stats.isConnected || clear_stats.disabled) return;
+            const confirmed = clear_confirmation.timeout !== null && performance.now() < clear_confirmation.expires;
+            clear_confirm();
+            if (!confirmed){
+              clear_stats.textContent = 'Are you sure?';
+              clear_stats.classList.add('confirming');
+              clear_confirmation.expires = performance.now() + 2000;
+              clear_confirmation.timeout = setTimeout(clear_confirm, 2000);
+              return;
             }
             const session = get_session_stats();
             session.loot.length = 0;
@@ -2569,16 +2613,31 @@
         };
         list.appendChild(restart);
 
-        options.appendChild(expand);
+
+        document.body.appendChild(expand);
         wrapper.appendChild(list);
         options.appendChild(wrapper);
         document.body.appendChild(options);
         update_keyboard_options();
     };
 
+    const managefilter = () => {
+      const option = ((CACHE.get('user_options')?.['nofilter'] ?? false));
+      const stats = document.getElementById('tower-stats');
+
+      if(!option){
+        stats.classList.add('stats-filter');
+      } else{
+        stats.classList.remove('stats-filter');
+      }
+
+
+    };
+
     const create_tower_stats = () => {
         const stats = document.createElement('div');
         stats.id = 'tower-stats';
+        stats.classList.add('expanded');
 
         const title = document.createElement('div');
         title.id = 'tower-stats-title';
@@ -2609,6 +2668,26 @@
 
         const looted = document.createElement('div');
         looted.id = 'tower-stats-loot-list';
+
+        let stats_hidden = false;
+
+        const collapsebutton = document.createElement('div');
+        collapsebutton.id = 'collapse-everything';
+        collapsebutton.innerHTML = "<span>[-]</span>"
+        document.body.appendChild(collapsebutton);
+
+        collapsebutton.onclick = () => {
+          const textspan = collapsebutton.querySelector('span');
+          stats_hidden = !stats_hidden;
+          stats.classList.toggle('expanded');
+          textspan.textContent = stats_hidden ? '[+]' : '[-]';
+          setTimeout(() => { //after transition
+            textspan.textContent = stats_hidden ? '[+]Stats' : '[-]';
+            stats.style['visibility'] = stats_hidden ? 'hidden' : 'visible';
+          }, stats_hidden ? 300 : 0);
+        }
+
+
 
         stats.appendChild(title);
         stats.appendChild(subtitle);
@@ -2656,15 +2735,10 @@
         if (too_big_indicator !== null) {
             if (CACHE.get('user_options')?.['alwayshidequeuelist'] ?? false) {
                 too_big_indicator.innerHTML = 'You are currently hiding your queue.<br />(disable this in Options)';
-            } else {
-                too_big_indicator.innerHTML = 'Your queue size is &gt;&equals; 100!<br />Hiding the queue to save on resources...';
             }
         }
 
-        const too_big = (
-            (enemies.length >= 100 && (CACHE.get('user_options')?.['hidewhenbig'] ?? true)) ||
-            (CACHE.get('user_options')?.['alwayshidequeuelist'] ?? false)
-        );
+        const too_big = ((CACHE.get('user_options')?.['alwayshidequeuelist'] ?? false));
         if (too_big) {
             if (!queue.classList.contains('too-big')) {
                 queue.classList.add('too-big');
@@ -2680,53 +2754,73 @@
                 too_big_indicator.classList.remove('too-big');
             }
         }
+        const hidename = ((CACHE.get('user_options')?.['hidenames'] ?? false));
 
-        if (!too_big) {
-            for (const enemy in enemies) {
-                // const { name, image, hp, maxHp } = enemy;
-                const item = document.createElement('div');
-                item.classList.add('tower-stats-enemy');
+        if(!too_big){
+          
+          let total = 100;
+          if(!(CACHE.get('user_options')?.['hidewhenbig'] ?? true))
+            total = enemies.length;
 
-                const index = document.createElement('div');
-                const image = document.createElement('div');
-                const stacked = document.createElement('div');
-                const wrapper_name = document.createElement('div');
-                const wrapper_hp = document.createElement('div');
-                const name = document.createElement('div');
-                const hp = document.createElement('div');
-                index.classList.add('tower-stats-enemy-index')
-                image.classList.add('tower-stats-enemy-image');
-                stacked.classList.add('tower-stats-enemy-stacked-info');
-                wrapper_name.classList.add('tower-stats-enemy-name-wrapper');
-                wrapper_hp.classList.add('tower-stats-enemy-hp-wrapper');
-                name.classList.add('tower-stats-enemy-name');
-                hp.classList.add('tower-stats-enemy-hp');
+          for(let count = 0; count < total; count++){
+            const enemy = enemies[count];
+          //for (const enemy in enemies) {
+            // const { name, image, hp, maxHp } = enemy;
+            const item = document.createElement('div');
+            item.classList.add('tower-stats-enemy');
 
-                index.textContent = `${enemy}`;
-                image.style.backgroundImage = `url('${enemies[enemy]['image']}')`;
-                if (enemies[enemy]['clone']) {
-                    image.classList.add('tower-stats-enemy-image-clone');
-                    image.style.backgroundSize = '0 0';
-                }
-                name.textContent = `${enemies[enemy]['name']}`;
-                hp.textContent = `${enemies[enemy]['hp']}/${enemies[enemy]['maxHp']}`;
+            const index = document.createElement('div');
+            const image = document.createElement('div');
+            const stacked = document.createElement('div');
+            const wrapper_name = document.createElement('div');
+            const wrapper_hp = document.createElement('div');
+            const name = document.createElement('div');
+            const hp = document.createElement('div');
+            index.classList.add('tower-stats-enemy-index')
+            image.classList.add('tower-stats-enemy-image');
+            stacked.classList.add('tower-stats-enemy-stacked-info');
+            wrapper_name.classList.add('tower-stats-enemy-name-wrapper');
+            wrapper_hp.classList.add('tower-stats-enemy-hp-wrapper');
+            name.classList.add('tower-stats-enemy-name');
+            hp.classList.add('tower-stats-enemy-hp');
 
-                const percentage = enemies[enemy]['hp'] / enemies[enemy]['maxHp'];
-                wrapper_hp.style.setProperty('--current-percentage', `${percentage * 100}%`);
-
-                wrapper_name.appendChild(name);
-                wrapper_hp.appendChild(hp);
-
-                stacked.appendChild(wrapper_name);
-                stacked.appendChild(wrapper_hp);
-
-                item.appendChild(index);
-                item.appendChild(image);
-                item.appendChild(stacked);
-
-                queue.appendChild(item);
+            index.textContent = `${count}`;
+            image.style.backgroundImage = `url('${enemy['image']}')`;
+            if (enemy['clone']) {
+                image.classList.add('tower-stats-enemy-image-clone');
+                image.style.backgroundSize = '0 0';
             }
+            name.textContent = `${enemy['name']}`;
+            hp.textContent = `${enemy['hp']}/${enemy['maxHp']}`;
+
+            const percentage = enemy['hp'] / enemy['maxHp'];
+            wrapper_hp.style.setProperty('--current-percentage', `${percentage * 100}%`);
+
+            wrapper_name.appendChild(name);
+            wrapper_hp.appendChild(hp);
+
+            stacked.appendChild(wrapper_name);
+            stacked.appendChild(wrapper_hp);
+
+            item.appendChild(index);
+            item.appendChild(image);
+            if(!hidename){
+              item.appendChild(stacked);
+            }
+            else{
+              item.style['justify-content'] = "left";
+            }
+            queue.appendChild(item);
+            if((CACHE.get('user_options')?.['hidewhenbig'] ?? true) && count == 99){
+              const tooBigInfo = document.createElement('div')
+              tooBigInfo.style['font-size'] = '16px';
+              tooBigInfo.style['color'] = 'red';
+              tooBigInfo.innerHTML = 'Your queue size is &gt;&equals; 100!<br /> Only showing first 100 entries...';
+              queue.appendChild(tooBigInfo);
+            }
+          }
         }
+        
 
         const title = document.getElementById('tower-stats-title');
         if (title !== null) {
@@ -2768,7 +2862,14 @@
                 name.append(document.createElement('span'), document.createTextNode(` ${enemy.name}`));
                 header.append(image, name);
                 header.querySelector('span').textContent = `${enemy.count}x`;
-                list.appendChild(header);
+                list.appendChild(header)
+
+                //let Collapse = false;
+
+                const itemHolder = document.createElement('div');
+
+                list.appendChild(itemHolder);
+
                 for (const entry of enemy.loot) {
                     const item = document.createElement('div');
                     const image = document.createElement('div');
@@ -2780,8 +2881,14 @@
                     name.textContent = `${entry.count}x ${entry.name}`;
                     item.appendChild(image);
                     item.appendChild(name);
-                    list.appendChild(item);
+                    itemHolder.appendChild(item);
                 }
+                /*
+                header.onclick = () => {
+                  Collapse = !Collapse
+                  itemHolder.style['display'] = Collapse ? 'none' : '';
+                }*/
+                
             }
             looted.replaceChildren(list);
         }
@@ -3391,7 +3498,7 @@
             style.id = "tower-keyboard-styles";
             style.textContent = `
                     #tower-controls button {
-                            z-index: 9999999;
+                            z-index: 996;
                             position: fixed;
                             top: 0;
                             right: 0;
@@ -3409,7 +3516,7 @@
                             width: 0;
                             height: 0;
                             pointer-events: none;
-                            z-index: 9999998;
+                            z-index: 996;
                             color: #eee;
                     }
                     .tower-key-indicator {
