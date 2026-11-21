@@ -1104,8 +1104,15 @@
         if (typeof enemy?.name !== 'string' || !enemy.name || typeof enemy?.image !== 'string' || !enemy.image) enemy = UNKNOWN_LOOT_ENEMY;
         let group = stats.loot.find(entry => entry.name === enemy.name && entry.image === enemy.image);
         if (!group) {
-            group = { name: enemy.name, image: enemy.image, count: 0, time: 0, loot: [] };
-            stats.loot.push(group);
+          let g2 = stats.loot.find(entry => entry.name === enemy.name && entry.image !== enemy.image);
+            if (g2){
+              g2['image'] = enemy.image;
+              group = g2;
+            } else {
+              group = { name: enemy.name, image: enemy.image, count: 0, time: 0, loot: [] };
+              stats.loot.push(group);
+            }
+            
         }
         return group;
     };
@@ -1229,7 +1236,16 @@
                 existing.time = time;
             }
             else {
-                group.loot.push({ image: item.image, name: item.name, count: 1, time });
+                const imageupdate = group.loot.find(entry => entry.name === item.name && entry.image !== item.image);
+                if(imageupdate){
+                  imageupdate.image = item.image;
+                  existing.count++;
+                  existing.time = time;
+                }
+                else{
+                  group.loot.push({ image: item.image, name: item.name, count: 1, time });
+                }
+                
             }
         }
         group.time = time;

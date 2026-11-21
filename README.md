@@ -40,6 +40,7 @@ Open [The Lonely Tower](https://dogonline.net/tower) on dogonline.net, press F12
 - Added "Disable blur" toggle in options for removing the blur behind stats, it should improve performance if needed.
 - Added a button in the top left to hide/show all the stats, most helpful for mobile.
 - Changed the default behaviour of the queue. Rather than hiding all the entries once you have 100, it just hides any beyond that.
+- Updated logic to account for any future changes in image path
 
 ----
 
